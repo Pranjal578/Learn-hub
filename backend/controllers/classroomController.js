@@ -376,6 +376,13 @@ exports.submitAssignment = async (req, res) => {
         // Handle file upload if present
         if (req.files && req.files.submissionFile) {
             const subFile = req.files.submissionFile;
+
+            // Enforce PDF format check
+            const isPdf = subFile.mimetype === "application/pdf" || subFile.name?.toLowerCase().endsWith(".pdf");
+            if (!isPdf) {
+                return res.status(400).json({ success: false, message: "Only PDF files (.pdf) are allowed for assignment submission" });
+            }
+
             if (subFile.size > 10 * 1024 * 1024) {
                 return res.status(400).json({ success: false, message: "File size exceeds 10 MB limit" });
             }
@@ -385,10 +392,16 @@ exports.submitAssignment = async (req, res) => {
                 console.error("Assignment submission upload error:", uploadError);
                 return res.status(500).json({ success: false, message: "Failed to upload submission file" });
             }
+        } else if (submissionUrl) {
+            // Validate PDF URL if submitted via link
+            const isPdfUrl = submissionUrl.toLowerCase().includes(".pdf") || submissionUrl.startsWith("data:application/pdf");
+            if (!isPdfUrl) {
+                return res.status(400).json({ success: false, message: "Only PDF links (.pdf) or PDF file uploads are allowed" });
+            }
         }
 
         if (!submissionUrl) {
-            return res.status(400).json({ success: false, message: "Submission URL or file is required" });
+            return res.status(400).json({ success: false, message: "Submission PDF file or URL is required" });
         }
 
         const classroom = await Classroom.findOne({

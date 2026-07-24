@@ -135,7 +135,12 @@ function AssignmentCard({ assignment, isInstructor, classroomId, token, dispatch
   const handleSubmit = () => {
     if (subMode === "file") {
       if (!subFile) {
-        toast.error("Please select a PDF or file to upload");
+        toast.error("Please select a PDF file to upload");
+        return;
+      }
+      const isPdf = subFile.type === "application/pdf" || subFile.name?.toLowerCase().endsWith(".pdf");
+      if (!isPdf) {
+        toast.error("Only PDF files (.pdf) are allowed for assignment submission");
         return;
       }
       if (subFile.size > 10 * 1024 * 1024) {
@@ -149,7 +154,12 @@ function AssignmentCard({ assignment, isInstructor, classroomId, token, dispatch
       dispatch(submitAssignment(formData, token));
     } else {
       if (!subUrl.trim()) {
-        toast.error("Please enter a submission URL");
+        toast.error("Please enter a PDF submission URL");
+        return;
+      }
+      const isPdfUrl = subUrl.toLowerCase().includes(".pdf") || subUrl.startsWith("data:application/pdf");
+      if (!isPdfUrl) {
+        toast.error("Submission URL must point to a PDF file (.pdf)");
         return;
       }
       dispatch(
@@ -332,7 +342,7 @@ function AssignmentCard({ assignment, isInstructor, classroomId, token, dispatch
                     subMode === "file" ? "bg-yellow-50 text-richblack-900 font-semibold" : "bg-richblack-800 text-richblack-300 hover:text-richblack-5"
                   }`}
                 >
-                  Upload PDF / File (Max 10 MB)
+                  Upload PDF File (Max 10 MB)
                 </button>
                 <button
                   type="button"
@@ -341,23 +351,32 @@ function AssignmentCard({ assignment, isInstructor, classroomId, token, dispatch
                     subMode === "url" ? "bg-yellow-50 text-richblack-900 font-semibold" : "bg-richblack-800 text-richblack-300 hover:text-richblack-5"
                   }`}
                 >
-                  Submission URL
+                  Submission PDF Link
                 </button>
               </div>
 
               {subMode === "file" ? (
                 <div className="space-y-1">
-                  <label className="block text-xs text-richblack-300">Select PDF or File (Limit: 10 MB):</label>
+                  <label className="block text-xs text-richblack-300">Select PDF File (Limit: 10 MB):</label>
                   <input
                     type="file"
-                    accept=".pdf,application/pdf,image/*"
+                    accept=".pdf,application/pdf"
                     onChange={(e) => {
                       const file = e.target.files[0];
-                      if (file && file.size > 10 * 1024 * 1024) {
-                        toast.error("File size must not exceed 10 MB");
-                        e.target.value = "";
-                        setSubFile(null);
-                        return;
+                      if (file) {
+                        const isPdf = file.type === "application/pdf" || file.name?.toLowerCase().endsWith(".pdf");
+                        if (!isPdf) {
+                          toast.error("Only PDF files (.pdf) are allowed");
+                          e.target.value = "";
+                          setSubFile(null);
+                          return;
+                        }
+                        if (file.size > 10 * 1024 * 1024) {
+                          toast.error("File size must not exceed 10 MB");
+                          e.target.value = "";
+                          setSubFile(null);
+                          return;
+                        }
                       }
                       setSubFile(file);
                     }}
@@ -367,7 +386,7 @@ function AssignmentCard({ assignment, isInstructor, classroomId, token, dispatch
               ) : (
                 <input
                   type="url"
-                  placeholder="https://..."
+                  placeholder="https://example.com/submission.pdf"
                   value={subUrl}
                   onChange={(e) => setSubUrl(e.target.value)}
                   onKeyDown={(e) => {
