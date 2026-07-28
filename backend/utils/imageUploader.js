@@ -1,18 +1,38 @@
 const cloudinary = require('cloudinary').v2;
 
+const fs = require('fs');
+
 exports.uploadImageToCloudinary = async (file, folder, height, quality) => {
     try {
-        const options = { folder };
+        const options = { folder: folder || process.env.FOLDER_NAME || "LearnHub", resource_type: 'auto' };
         if (height) options.height = height;
         if (quality) options.quality = quality;
-        options.resource_type = 'auto';
 
-        const uploadPromise = cloudinary.uploader.upload(file.tempFilePath, options);
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Cloudinary upload timeout")), 3500)
-        );
+        let target = null;
+        if (typeof file === 'string') {
+            target = file;
+        } else if (file && file.tempFilePath && fs.existsSync(file.tempFilePath)) {
+            target = file.tempFilePath;
+        } else if (file && file.path && fs.existsSync(file.path)) {
+            target = file.path;
+        }
 
-        return await Promise.race([uploadPromise, timeoutPromise]);
+        if (target) {
+            return await cloudinary.uploader.upload(target, options);
+        }
+
+        // Fallback if file buffer exists
+        if (file && file.data) {
+            return new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
+                    if (error) return reject(error);
+                    resolve(result);
+                });
+                uploadStream.end(file.data);
+            });
+        }
+
+        throw new Error("Invalid file upload object: file path or buffer missing");
     }
     catch (error) {
         console.log("Error while uploading file to Cloudinary:", error.message || error);

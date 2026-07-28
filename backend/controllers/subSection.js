@@ -11,8 +11,7 @@ exports.createSubSection = async (req, res) => {
         const { title, description, sectionId } = req.body;
 
         // extract video file
-        const videoFile = req.files.video
-        // console.log('videoFile ', videoFile)
+        const videoFile = req.files ? (req.files.video || req.files.videoFile) : null;
 
         // validation
         if (!title || !description || !videoFile || !sectionId) {
@@ -26,11 +25,14 @@ exports.createSubSection = async (req, res) => {
         const videoFileDetails = await uploadImageToCloudinary(videoFile, process.env.FOLDER_NAME);
 
         // create entry in DB
-        const SubSectionDetails = await SubSection.create(
-            { title, timeDuration: videoFileDetails.duration, description, videoUrl: videoFileDetails.secure_url })
+        const SubSectionDetails = await SubSection.create({
+            title,
+            timeDuration: `${videoFileDetails?.duration || 0}`,
+            description,
+            videoUrl: videoFileDetails.secure_url
+        })
 
         // link subsection id to section
-        // Update the corresponding section with the newly created sub-section
         const updatedSection = await Section.findByIdAndUpdate(
             { _id: sectionId },
             { $push: { subSection: SubSectionDetails._id } },
@@ -45,8 +47,7 @@ exports.createSubSection = async (req, res) => {
         });
     }
     catch (error) {
-        console.log('Error while creating SubSection');
-        console.log(error);
+        console.error('Error while creating SubSection:', error);
         res.status(500).json({
             success: false,
             error: error.message,
@@ -90,11 +91,11 @@ exports.updateSubSection = async (req, res) => {
         }
 
         // upload video to cloudinary
-        if (req.files && req.files.videoFile !== undefined) {
-            const video = req.files.videoFile;
+        const video = req.files ? (req.files.video || req.files.videoFile) : null;
+        if (video) {
             const uploadDetails = await uploadImageToCloudinary(video, process.env.FOLDER_NAME);
             subSection.videoUrl = uploadDetails.secure_url;
-            subSection.timeDuration = uploadDetails.duration;
+            subSection.timeDuration = `${uploadDetails?.duration || 0}`;
         }
 
         // save data to DB

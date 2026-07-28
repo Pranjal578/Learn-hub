@@ -29,10 +29,13 @@ app.use(
         credentials: true
     })
 );
+const os = require('os');
 app.use(
     fileUpload({
         useTempFiles: true,
-        tempFileDir: '/tmp'
+        tempFileDir: os.tmpdir(),
+        createParentPath: true,
+        limits: { fileSize: 1024 * 1024 * 1024 }
     })
 )
 
