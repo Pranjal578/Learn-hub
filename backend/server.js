@@ -17,6 +17,8 @@ const profileRoutes = require('./routes/profile');
 const paymentRoutes = require('./routes/payments');
 const courseRoutes = require('./routes/course');
 const classroomRoutes = require('./routes/classroom');
+const quizRoutes = require('./routes/quiz');
+const certificateRoutes = require('./routes/certificate');
 
 
 // middleware 
@@ -56,6 +58,8 @@ app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/course', courseRoutes);
 app.use('/api/v1/classroom', classroomRoutes);
+app.use('/api/v1/quiz', quizRoutes);
+app.use('/api/v1/certificate', certificateRoutes);
 
 
 

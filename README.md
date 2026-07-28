@@ -1,10 +1,8 @@
 <div align="center">
 
-<img height="80" src="https://learnhub-opju.netlify.app/images/logo2.svg" alt="LearnHub Logo" />
+# 🎓 LearnHub — Full-Stack E-Learning & Interactive Classroom Platform
 
-# LearnHub — Full-Stack E-Learning & Interactive Classroom Platform
-
-**A production-grade MERN stack Ed-Tech platform with Role-Based Access Control (RBAC), video courses, and real-time interactive classrooms.**
+**A production-grade MERN stack Ed-Tech platform featuring Role-Based Access Control (RBAC), Course Marketplace with 100% Completion Verifiable Certificates, Zero-Code Quiz Creation, Graph Analytics, and Interactive Virtual Classrooms.**
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-4-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
@@ -12,12 +10,13 @@
 [![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-7-47A248?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
 [![Redux](https://img.shields.io/badge/Redux_Toolkit-1.9-764ABC?style=flat-square&logo=redux)](https://redux-toolkit.js.org/)
+[![Chart.js](https://img.shields.io/badge/Chart.js-4.4-FF6384?style=flat-square&logo=chartdotjs)](https://www.chartjs.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 <br/>
 
-[**🌐 Live Demo**](https://learnhub-opju.vercel.app/) &nbsp;·&nbsp; [**📡 API Reference**](#-api-reference) &nbsp;·&nbsp; [**🚀 Local Setup**](#-local-setup)
+[**📡 API Reference**](#-api-reference) &nbsp;·&nbsp; [**🚀 Local Setup**](#-local-setup-guide) &nbsp;·&nbsp; [**✨ Features**](#-key-features) &nbsp;·&nbsp; [**🔐 RBAC Portal**](#-role-based-access-control-rbac--test-accounts)
 
 </div>
 
@@ -25,64 +24,87 @@
 
 ## 📌 Overview
 
-LearnHub is an end-to-end educational platform designed for modern online learning. It combines a full-fledged **course marketplace** (video lectures, progress tracking, Razorpay checkout) with **interactive classrooms** for instructor-student collaboration (announcements, direct file & link materials, timed assignments, and auto-generated join codes).
+**LearnHub** is an end-to-end educational platform designed for modern online learning and academic collaboration. It bridges the gap between self-paced video learning and live classroom management by combining:
 
-The platform features an automatic **triple-tier database fallback system**:
-1. **Primary**: Remote MongoDB Atlas Cluster
-2. **Secondary**: Local MongoDB Server (`mongodb://127.0.0.1:27017/learnhub`)
-3. **Tertiary (In-Memory)**: Automatic zero-config `mongodb-memory-server` fallback for offline / development environments.
+1. **Course Marketplace**: Video curriculum, progress tracking, interactive quizzes, and **Verifiable Certificates of Completion** granted strictly upon 100% course lecture completion.
+2. **Interactive Virtual Classrooms**: Real-time instructor-student hubs with feed announcements, direct document/media notes, timed assignments, and auto-generated shareable join codes.
+3. **Instructor Analytics Console**: Interactive Bar and Line graph visualizations to monitor student enrollments, course revenues, and top-performing content.
+
+The backend features an automated **Triple-Tier Database Fallback System**:
+- 🟢 **Primary**: Remote MongoDB Atlas Cloud Cluster
+- 🟡 **Secondary**: Local MongoDB Instance (`mongodb://127.0.0.1:27017/learnhub`)
+- 🔵 **Tertiary (In-Memory)**: Zero-config `mongodb-memory-server` fallback for offline development.
+
+---
+
+## 🚀 Key Highlights & New Enhancements
+
+### 🏆 Course Completion Certificates
+- **100% Completion Enforced**: Certificates are granted **only** to students enrolled in a course who have completed 100% of all lectures.
+- **Dynamic Verification**: Every certificate receives a unique `CERT-XXXX` code and a public verification link (`/verify-certificate/:code`).
+- **Clean Isolated Printing**: Built-in `@media print` rules ensure only the official certificate frame is printed, removing all navigation bars and background elements.
+
+### 📝 Zero-Code Quiz & Assessment Builder
+- Instructors can add **Quizzes & Assessments** directly in the **Course Builder** studio alongside video lectures.
+- **1-Click Visual Builder Launchers**: Direct integration with *Google Forms*, *Microsoft Forms*, and *Quizizz* so non-technical instructors can build quizzes without writing code.
+- **Student Quiz Card**: Renders an interactive assessment card inside the course player with direct launch buttons and a "Mark Quiz as Completed" action.
+
+### 📊 Instructor Graph Analytics & Visualization
+- Upgraded instructor dashboard from static pie charts to dynamic **Chart.js** **Bar & Line Graphs**.
+- Filter metrics by **Students Enrolled**, **Revenue Generated (₹)**, or a **Dual-Axis Combined Overview**.
+
+### 🎥 Large Video Chunking Upload System
+- Optimized Cloudinary integration using `upload_large` with 6MB chunking to prevent timeout issues when uploading high-res video lectures.
 
 ---
 
 ## 🔐 Role-Based Access Control (RBAC) & Test Accounts
 
-| Role | Entry URL | Default Test Credentials | Primary Capabilities |
-|------|-----------|--------------------------|----------------------|
-| **Super Admin** | `http://localhost:5173/admin-secure-portal/login` *(Isolated URL)* | `admin@test.com` / `password123` | Global system oversight, platform stats console, category management, complete classroom audit |
-| **Instructor** | `http://localhost:5173/login` *(Common Gateway)* | `instructor@test.com` / `password123` | Create courses & classrooms, post announcements, upload materials (PDFs/Images/Links/Text), create/extend assignments |
-| **Student** | `http://localhost:5173/login` *(Common Gateway)* | `student@test.com` / `password123` | Purchase & watch courses, join classrooms via 8-char code or URL, submit assignments before deadlines, view materials |
+| Role | Access URL | Default Test Credentials | Primary Capabilities |
+|------|------------|--------------------------|----------------------|
+| **Super Admin** | `http://localhost:5173/admin-secure-portal/login` *(Isolated Security Route)* | `admin@test.com` / `password123` | Global system oversight, platform stats console, category management, full classroom & course audit |
+| **Instructor** | `http://localhost:5173/login` | `instructor@test.com` / `password123` | Multi-step Course Builder (Lectures + Quizzes), Instructor Analytics Graphs, Create & Manage Classrooms, Post Materials & Timed Assignments |
+| **Student** | `http://localhost:5173/login` | `student@test.com` / `password123` | Enroll in courses, watch video lectures, complete quizzes, claim **100% Completion Certificates**, join classrooms via code/URL |
 
 ---
 
-## ✨ Key Features
+## ✨ Feature Breakdown
 
 ### 🎓 Student Workspace
-- **Course Marketplace**: Browse categories, add courses to wishlist/cart, and complete checkout via **Razorpay**.
-- **Interactive Video Player**: Subsection video streaming with progress tracking and completion checkmarks.
-- **Classroom Enrollment**: Join classrooms using an 8-character unique code or a shareable URL (`/join/:uniqueCode`).
-- **Classroom Feed & Materials**: Read instructor announcements, access reading links, view uploaded PDF notes and images.
-- **Assignment Submissions**: Submit assignment links prior to enforced deadlines.
+- **Course Catalog**: Filter by category, view course detail pages, add items to cart/wishlist, and checkout via **Razorpay**.
+- **Course Player & Progress**: Video streaming with completion checkmarks, lecture navigation, and real-time progress percentages.
+- **Certificate Claim**: Dynamic "Claim Certificate" widget appears in the player sidebar as soon as progress reaches 100%.
+- **Classroom Student Hub**: Join classrooms with 8-character unique codes or direct URLs (`/join/:code`), download notes (PDFs/Images), submit assignment links before deadlines.
 
 ### 👩‍🏫 Instructor Workspace
-- **Course Creation Studio**: Multi-step builder (Course Details → Sections/Subsections → Cloudinary Media → Publish).
-- **Classroom Management**: Create timed classrooms with auto-generated unique codes and shareable join URLs.
-- **Rich Material Uploads**: Post course materials by choosing between **Direct Local File Upload** (PDFs/Images uploaded to Cloudinary), external links, or inline text body.
-- **Timed Assignments**: Create assignments with strict due dates, extend deadlines on demand, and review student submission links.
-- **Instructor Dashboard**: Analytics on total earnings, enrolled students, and course performance.
+- **Course Builder Studio**: Create sections, add video lectures or quizzes, upload media via chunked Cloudinary streams, and publish.
+- **Analytics Dashboard**: Visual Bar and Line graphs tracking total earnings, total students, and course performance breakdown.
+- **Classroom Control**: Post feed notices, upload learning materials (PDFs/Images/Links/Text), set assignment deadlines, and review submissions.
 
-### 🛡️ Super Admin Console
-- **Isolated Portal**: Security portal at `/admin-secure-portal/login` with API-level `ACCOUNT_TYPE` verification.
-- **Platform Analytics**: Total classrooms, student enrollments, instructor activity, and system overview.
-- **Category Control**: Create, edit, and organize course catalog categories.
+### 🛡️ Admin Security Console
+- **Isolated Super Admin Portal**: Security portal located at `/admin-secure-portal/login` with strict server-side `ACCOUNT_TYPE` validation.
+- **Category Control**: Create, edit, and organize catalog categories.
+- **System Metrics**: Total user registrations, active courses, classrooms, and platform activity.
 
 ---
 
 ## 💻 Tech Stack
 
 ### Frontend
-- **Core**: React 18, Vite 4, React Router DOM v6
+- **Framework**: React 18, Vite 4, React Router DOM v6
 - **State Management**: Redux Toolkit (`auth`, `profile`, `course`, `cart`, `classroom`, `viewCourse`)
-- **Styling**: Tailwind CSS + Vanilla CSS, Framer Motion
-- **Icons & Media**: React Icons (`vsc`, `md`, `ai`, `fi`), Video-React, Swiper, Cloudinary
-- **Form & UX**: React Hook Form, React Hot Toast
+- **Visualizations**: Chart.js, React-Chartjs-2
+- **Styling**: Tailwind CSS, Vanilla CSS Design System, Framer Motion
+- **Icons & Media**: React Icons, Video-React, Swiper
+- **Utilities**: React Hook Form, React Hot Toast
 
 ### Backend
-- **Runtime & Framework**: Node.js, Express.js
-- **Database**: MongoDB + Mongoose ODM (with `mongodb-memory-server` fallback)
-- **Auth & Security**: JWT (JSON Web Tokens), bcrypt hashing, OTP email verification
-- **File & Media Storage**: Cloudinary SDK, express-fileupload
+- **Runtime & Server**: Node.js, Express.js
+- **Database**: MongoDB & Mongoose ODM (with `mongodb-memory-server` fallback)
+- **Auth & Security**: JWT (JSON Web Tokens), bcrypt password hashing, OTP verification
+- **Media & Files**: Cloudinary SDK, express-fileupload
 - **Payments**: Razorpay Node SDK
-- **Communication**: Nodemailer (SMTP)
+- **Mailing**: Nodemailer (SMTP)
 
 ---
 
@@ -98,7 +120,7 @@ The platform features an automatic **triple-tier database fallback system**:
       ▼                  ▼                  ▼                    ▼                    ▼
 ┌───────────┐      ┌────────────┐     ┌───────────┐        ┌───────────┐        ┌───────────┐
 │  MongoDB  │      │ Cloudinary │     │ Razorpay  │        │Nodemailer │        │ Mongo-Mem │
-│(Atlas/Loc)│      │File Uploads│     │ Payments  │        │ SMTP Mail │        │ In-Memory │
+│(Atlas/Loc)│      │Media Upload│     │ Payments  │        │ SMTP Mail │        │ In-Memory │
 └───────────┘      └────────────┘     └───────────┘        └───────────┘        └───────────┘
 ```
 
@@ -108,13 +130,13 @@ The platform features an automatic **triple-tier database fallback system**:
 
 | Schema | Key Fields | Description |
 |--------|------------|-------------|
-| **User** | `firstName`, `lastName`, `email`, `password`, `accountType`, `courses[]`, `classrooms[]`, `image` | User account document supporting Student, Instructor, and Admin roles |
-| **Profile** | `gender`, `dateOfBirth`, `about`, `contactNumber` | Extended user profile details |
-| **Course** | `courseName`, `instructor`, `price`, `thumbnail`, `courseContent[]`, `studentsEnrolled[]`, `status` | Video course object |
-| **Classroom** | `className`, `instructor`, `uniqueCode`, `shareableUrl`, `duration`, `studentsEnrolled[]`, `materials[]`, `assignments[]`, `notices[]` | Interactive classroom object with embedded material, notice, and assignment subdocuments |
-| **Section** | `sectionName`, `subSection[]` | Course curriculum section |
-| **SubSection** | `title`, `timeDuration`, `description`, `videoUrl` | Individual video lesson |
-| **CourseProgress** | `courseID`, `userId`, `completedVideos[]` | Tracks video lesson completion |
+| **User** | `firstName`, `lastName`, `email`, `password`, `accountType`, `courses[]`, `classrooms[]`, `image` | Core user entity supporting Student, Instructor, and Admin accounts |
+| **Course** | `courseName`, `instructor`, `price`, `thumbnail`, `courseContent[]`, `studentsEnrolled[]`, `status` | Video course entity |
+| **Section** | `sectionName`, `subSection[]` | Section container for lectures and quizzes |
+| **SubSection** | `title`, `timeDuration`, `description`, `videoUrl`, `isQuiz`, `quizUrl` | Video lesson or quiz item |
+| **Certificate** | `student`, `course`, `instructor`, `type`, `certificateCode`, `issueDate` | Verifiable completion certificate document |
+| **Classroom** | `className`, `instructor`, `uniqueCode`, `shareableUrl`, `duration`, `studentsEnrolled[]`, `materials[]`, `assignments[]` | Interactive virtual classroom |
+| **CourseProgress** | `courseID`, `userId`, `completedVideos[]` | Tracks completed lectures for course progress calculation |
 | **OTP** | `email`, `otp`, `createdAt` | Auto-expiring TTL collection for email verification |
 
 ---
@@ -124,54 +146,44 @@ The platform features an automatic **triple-tier database fallback system**:
 ```
 LearnHub-E-Learning-Platform/
 ├── backend/
-│   ├── config/               # Database, Cloudinary, Razorpay configuration
+│   ├── config/               # DB, Cloudinary, Razorpay configurations
 │   ├── controllers/
 │   │   ├── auth.js           # Signup, Login, OTP, AdminLogin
-│   │   ├── classroomController.js  # Classroom CRUD, materials, notices, assignments
+│   │   ├── certificateController.js # Verifiable certificate generator & public verifier
+│   │   ├── classroomController.js   # Classroom CRUD, feed, materials, assignments
 │   │   ├── course.js         # Course lifecycle management
-│   │   ├── profile.js        # User profile & avatar operations
-│   │   ├── payments.js       # Razorpay order capture & signature verification
-│   │   ├── category.js       # Category management
-│   │   └── section.js / subSection.js / ratingAndReview.js
+│   │   ├── profile.js        # Profile details & instructor dashboard analytics
+│   │   ├── subSection.js     # Video lecture & zero-code quiz handler
+│   │   └── payments.js / category.js / section.js
 │   ├── middleware/
-│   │   └── auth.js           # JWT auth + role guard middleware (isStudent, isInstructor, isAdmin)
+│   │   └── auth.js           # JWT verification & role guards (isStudent, isInstructor, isAdmin)
 │   ├── models/
+│   │   ├── Certificate.js    # Certificate model with type: course | classroom
 │   │   ├── Classroom.js      # Classroom schema with embedded materials/assignments
-│   │   ├── user.js           # User schema (with classrooms[] array ref)
-│   │   └── course.js / profile.js / OTP.js / section.js / subSection.js
-│   ├── routes/
-│   │   ├── classroom.js      # /api/v1/classroom
-│   │   ├── user.js           # /api/v1/auth (including admin-login)
-│   │   └── course.js / profile.js / payments.js
-│   ├── utils/                # mailSender, imageUploader helpers
-│   ├── .env / .env.example
-│   └── server.js
+│   │   ├── subSection.js     # SubSection model supporting isQuiz & quizUrl
+│   │   └── user.js / course.js / CourseProgress.js / profile.js / OTP.js
+│   ├── routes/               # API route modules (/api/v1/...)
+│   └── server.js             # Express application entry point
 │
 ├── frontend/
-│   ├── data/                 # sidebarLinks (role-filtered), navbarLinks
+│   ├── data/                 # Sidebar navigation & links
 │   └── src/
 │       ├── components/
-│       │   ├── common/       # Navbar, Footer, Loading, Modals
+│       │   ├── common/       # Navbar, Footer, Modals, FilePreviewModal
 │       │   └── core/
-│       │       ├── Auth/     # OpenRoute, ProtectedRoute, AdminRoute guards
-│       │       ├── Dashboard/# Sidebar, MyProfile, Classrooms (MyClassrooms, CreateClassroom, EnrolledClassrooms)
-│       │       └── Catalog/  # Course cards, sliders, active classroom grid
+│       │       ├── Auth/     # Route guards (OpenRoute, ProtectedRoute, AdminRoute)
+│       │       ├── Dashboard/# InstructorChart (Bar/Line graphs), MyProfile, CourseBuilder
+│       │       └── ViewCourse/# VideoDetails (Player & Quiz View), VideoDetailsSidebar (Progress & Cert Claim)
 │       ├── pages/
-│       │   ├── AdminLogin.jsx      # Isolated Super Admin portal
-│       │   ├── AdminDashboard.jsx  # Platform management console
-│       │   ├── ClassroomView.jsx   # Tabbed classroom page (Feed/Materials/Assignments/Members)
-│       │   ├── JoinClassroom.jsx   # Shareable URL auto-join handler
-│       │   ├── Catalog.jsx         # Course catalog & active live classrooms listing
-│       │   └── Home / Login / Signup / CourseDetails / Dashboard / Settings
-│       ├── services/
-│       │   ├── apis.js             # API endpoint definitions
-│       │   └── operations/         # Async thunks (classroomAPI, adminAPI, authAPI, courseDetailsAPI)
-│       ├── slices/                 # Redux slices (classroomSlice, authSlice, profileSlice, etc.)
-│       └── App.jsx                 # Application routes & guards
+│       │   ├── CertificateView.jsx  # Public verifiable certificate page with isolated print
+│       │   ├── ClassroomView.jsx    # Virtual classroom workspace (Feed/Materials/Assignments/Quizzes)
+│       │   ├── AdminDashboard.jsx   # Super Admin console
+│       │   └── Catalog.jsx / CourseDetails.jsx / Dashboard.jsx
+│       ├── services/         # API endpoints & async thunks (certificateAPI, courseDetailsAPI, etc.)
+│       └── App.jsx           # App routing table
 │
-├── backend/.env / .env.example
-├── frontend/.env / .env.example
-└── README.md
+├── .gitignore                # Global workspace gitignore
+└── README.md                 # System documentation
 ```
 
 ---
@@ -180,143 +192,28 @@ LearnHub-E-Learning-Platform/
 
 ### 1 · Clone Repository
 ```bash
-git clone https://github.com/BoddepallyVenkatesh06/LearnHub-E-Learning-Platform.git
+git clone https://github.com/Pranjal578/LearnHub-E-Learning-Platform.git
 cd LearnHub-E-Learning-Platform
 ```
 
-### 2 · Setup Backend
+### 2 · Backend Setup
 ```bash
 cd backend
 npm install
 npm run dev
 ```
-*The backend server runs on `http://localhost:5000`.*
+*Backend server runs on `http://localhost:5000`.*
 
-### 3 · Setup Frontend
+### 3 · Frontend Setup
 ```bash
 cd ../frontend
 npm install
 npm run dev
 ```
-*The frontend application runs on `http://localhost:5173`.*
+*Frontend dev server runs on `http://localhost:5173`.*
 
 ---
 
-## ⚙️ Environment Variables Reference
+## 📜 License
 
-### Backend (`backend/.env`)
-
-```env
-# Server Configuration
-PORT=5000
-
-# Database Configuration (MongoDB Atlas connection string)
-DATABASE_URL=mongodb+srv://<username>:<password>@cluster.mongodb.net/learnhub?retryWrites=true&w=majority
-
-# Authentication
-JWT_SECRET=your_jwt_secret_key
-
-# Cloudinary Integration (Media & File Uploads)
-CLOUD_NAME=your_cloudinary_cloud_name
-API_KEY=your_cloudinary_api_key
-API_SECRET=your_cloudinary_api_secret
-FOLDER_NAME=LearnHub
-
-# Nodemailer / SMTP Email Service
-MAIL_HOST=smtp.gmail.com
-MAIL_USER=your_email@gmail.com
-MAIL_PASS=your_email_app_password
-
-# Razorpay Payment Gateway
-RAZORPAY_KEY=your_razorpay_key_id
-RAZORPAY_SECRET=your_razorpay_secret
-
-# Frontend Application URL (Used for generating shareable classroom URLs)
-FRONTEND_URL=http://localhost:5173
-```
-
-### Frontend (`frontend/.env`)
-
-```env
-# Backend API Endpoint Base URL
-VITE_APP_BASE_URL=http://localhost:5000/api/v1
-
-# Razorpay Integration Key (Public)
-VITE_APP_RAZORPAY_KEY=your_razorpay_key_id
-```
-
----
-
-## 📡 API Reference
-
-### Authentication — `/api/v1/auth`
-
-| Method | Endpoint | Description | Role Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/sendotp` | Generate and dispatch OTP to user email | Public |
-| `POST` | `/signup` | Register new Student or Instructor account | Public |
-| `POST` | `/login` | Standard user login (Student / Instructor) | Public |
-| `POST` | `/admin-login` | **Super Admin** isolated login endpoint | Admin |
-| `POST` | `/changepassword` | Change authenticated account password | Authenticated |
-
-### Interactive Classrooms — `/api/v1/classroom`
-
-| Method | Endpoint | Description | Role Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/create` | Create classroom (generates 8-char code + share URL) | Instructor |
-| `POST` | `/join` | Enroll in classroom using 8-char join code | Student |
-| `GET` | `/my-classrooms` | Get created (Instructor) or enrolled (Student) classrooms | Authenticated |
-| `GET` | `/all-classrooms` | Fetch all active platform classrooms for catalog listing | Authenticated |
-| `POST` | `/details` | Get full details of a specific classroom | Authenticated |
-| `POST` | `/post-material` | Post material (supports direct file upload to Cloudinary or link/text) | Instructor |
-| `POST` | `/post-notice` | Post announcement to classroom feed | Instructor |
-| `POST` | `/create-assignment` | Create timed assignment with due date | Instructor |
-| `POST` | `/extend-deadline` | Extend assignment due date | Instructor |
-| `POST` | `/submit-assignment` | Submit assignment link prior to deadline | Student |
-| `DELETE` | `/delete` | Delete classroom and remove references | Instructor |
-| `GET` | `/all` | Get all classrooms on platform for Admin dashboard | Admin |
-
-### Courses & Catalog — `/api/v1/course`
-
-| Method | Endpoint | Description | Role Required |
-|--------|----------|-------------|---------------|
-| `GET` | `/getAllCourses` | List all published courses | Public |
-| `POST` | `/getCourseDetails` | Fetch public course details | Public |
-| `POST` | `/getFullCourseDetails` | Fetch full details with lesson video access | Authenticated |
-| `POST` | `/createCourse` | Create a new course | Instructor |
-| `POST` | `/editCourse` | Update course details | Instructor |
-| `DELETE` | `/deleteCourse` | Delete course | Instructor |
-| `GET` | `/getInstructorCourses` | List instructor's created courses | Instructor |
-| `POST` | `/createCategory` | Create course category | Admin |
-| `GET` | `/showAllCategories` | List all catalog categories | Public |
-
----
-
-## 🗺️ Frontend Route Map
-
-| Path | Guard | Component | Description |
-|------|-------|-----------|-------------|
-| `/` | Public | Home | Platform landing page |
-| `/login` | OpenRoute | Login | Standard student & instructor login |
-| `/signup` | OpenRoute | Signup | Registration page |
-| `/admin-secure-portal/login` | OpenRoute | **AdminLogin** | Isolated portal for Super Admins |
-| `/admin/dashboard` | **AdminRoute** | AdminDashboard | Super Admin platform management console |
-| `/catalog/:catalogName` | Public | Catalog | Catalog displaying courses and active live classrooms |
-| `/classroom/:classroomId` | ProtectedRoute | **ClassroomView** | Tabbed classroom view (Feed, Materials, Assignments, Members) |
-| `/join/:uniqueCode` | ProtectedRoute | **JoinClassroom** | Shareable URL auto-join handler |
-| `/dashboard/my-profile` | ProtectedRoute | MyProfile | User profile overview |
-| `/dashboard/my-classrooms` | ProtectedRoute | **MyClassrooms** | Instructor classroom management list |
-| `/dashboard/create-classroom` | ProtectedRoute | **CreateClassroom** | Instructor classroom creation form |
-| `/dashboard/joined-classrooms` | ProtectedRoute | **EnrolledClassrooms** | Student joined classrooms list & code modal |
-
----
-
-## 📄 License
-
-Distributed under the [MIT License](LICENSE).
-
----
-
-<div align="center">
-  <sub>Built with ❤️ — LearnHub Engineering Team</sub>
-</div>
+This project is licensed under the [MIT License](LICENSE).

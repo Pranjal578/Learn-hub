@@ -12,8 +12,15 @@ const subSectionSchema = new mongoose.Schema({
     },
     videoUrl: {
         type: String
+    },
+    isQuiz: {
+        type: Boolean,
+        default: false
+    },
+    quizUrl: {
+        type: String,
+        default: ""
     }
-
 });
 
 module.exports = mongoose.model('SubSection', subSectionSchema) 

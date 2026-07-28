@@ -28,6 +28,14 @@ const noticeSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
 });
 
+const quizSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    quizUrl: { type: String, required: true },
+    isLive: { type: Boolean, default: false },
+    dueDate: { type: Date },
+    createdAt: { type: Date, default: Date.now }
+});
+
 const classroomSchema = new mongoose.Schema(
     {
         className: { type: String, required: true, trim: true },
@@ -54,6 +62,7 @@ const classroomSchema = new mongoose.Schema(
         materials: [materialSchema],
         assignments: [assignmentSchema],
         notices: [noticeSchema],
+        quizzes: [quizSchema],
         isActive: { type: Boolean, default: true },
     },
     { timestamps: true }

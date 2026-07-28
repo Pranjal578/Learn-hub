@@ -18,6 +18,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import ClassroomView from "./pages/ClassroomView";
 import JoinClassroom from "./pages/JoinClassroom";
+import CertificateView from "./pages/CertificateView";
  
 import Navbar from "./components/common/Navbar"
 
@@ -197,6 +198,10 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Public Certificate Verification Routes */}
+        <Route path="verify-certificate/:code" element={<CertificateView />} />
+        <Route path="certificate/:code" element={<CertificateView />} />
 
         <Route
           path="update-password/:id" element={

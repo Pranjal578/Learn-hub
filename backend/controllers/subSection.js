@@ -8,36 +8,56 @@ const { uploadImageToCloudinary } = require('../utils/imageUploader');
 exports.createSubSection = async (req, res) => {
     try {
         // extract data
-        const { title, description, sectionId } = req.body;
+        const { title, description, sectionId, isQuiz, quizUrl } = req.body;
 
         // extract video file
         const videoFile = req.files ? (req.files.video || req.files.videoFile) : null;
 
+        const isQuizItem = isQuiz === "true" || isQuiz === true || Boolean(quizUrl);
+
         // validation
-        if (!title || !description || !videoFile || !sectionId) {
+        if (!title || !sectionId) {
             return res.status(400).json({
                 success: false,
-                message: 'All fields are required'
-            })
+                message: 'Title and Section ID are required'
+            });
         }
 
-        // upload video to cloudinary
-        const videoFileDetails = await uploadImageToCloudinary(videoFile, process.env.FOLDER_NAME);
+        if (!isQuizItem && !videoFile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Video file is required for video lectures'
+            });
+        }
+
+        let videoUrl = "";
+        let timeDuration = "0";
+
+        if (isQuizItem) {
+            videoUrl = quizUrl || "";
+            timeDuration = "Quiz / Assessment";
+        } else if (videoFile) {
+            const videoFileDetails = await uploadImageToCloudinary(videoFile, process.env.FOLDER_NAME);
+            videoUrl = videoFileDetails.secure_url;
+            timeDuration = `${videoFileDetails?.duration || 0}`;
+        }
 
         // create entry in DB
         const SubSectionDetails = await SubSection.create({
             title,
-            timeDuration: `${videoFileDetails?.duration || 0}`,
-            description,
-            videoUrl: videoFileDetails.secure_url
-        })
+            timeDuration,
+            description: description || "",
+            videoUrl,
+            isQuiz: isQuizItem,
+            quizUrl: quizUrl || videoUrl
+        });
 
         // link subsection id to section
         const updatedSection = await Section.findByIdAndUpdate(
             { _id: sectionId },
             { $push: { subSection: SubSectionDetails._id } },
             { new: true }
-        ).populate("subSection")
+        ).populate("subSection");
 
         // return response
         res.status(200).json({
@@ -52,7 +72,7 @@ exports.createSubSection = async (req, res) => {
             success: false,
             error: error.message,
             message: 'Error while creating SubSection'
-        })
+        });
     }
 }
 
@@ -61,7 +81,7 @@ exports.createSubSection = async (req, res) => {
 // ================ Update SubSection ================
 exports.updateSubSection = async (req, res) => {
     try {
-        const { sectionId, subSectionId, title, description } = req.body;
+        const { sectionId, subSectionId, title, description, isQuiz, quizUrl } = req.body;
 
         // validation
         if (!subSectionId) {
@@ -78,7 +98,7 @@ exports.updateSubSection = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "SubSection not found",
-            })
+            });
         }
 
         // add data
@@ -86,22 +106,34 @@ exports.updateSubSection = async (req, res) => {
             subSection.title = title;
         }
 
-        if (description) {
+        if (description !== undefined) {
             subSection.description = description;
         }
 
-        // upload video to cloudinary
+        if (isQuiz !== undefined) {
+            subSection.isQuiz = isQuiz === "true" || isQuiz === true;
+        }
+
+        if (quizUrl !== undefined) {
+            subSection.quizUrl = quizUrl;
+            if (subSection.isQuiz) {
+                subSection.videoUrl = quizUrl;
+            }
+        }
+
+        // upload video to cloudinary if provided
         const video = req.files ? (req.files.video || req.files.videoFile) : null;
         if (video) {
             const uploadDetails = await uploadImageToCloudinary(video, process.env.FOLDER_NAME);
             subSection.videoUrl = uploadDetails.secure_url;
             subSection.timeDuration = `${uploadDetails?.duration || 0}`;
+            subSection.isQuiz = false;
         }
 
         // save data to DB
         await subSection.save();
 
-        const updatedSection = await Section.findById(sectionId).populate("subSection")
+        const updatedSection = await Section.findById(sectionId).populate("subSection");
 
         return res.json({
             success: true,
@@ -110,13 +142,13 @@ exports.updateSubSection = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error while updating the section')
-        console.error(error)
+        console.error('Error while updating the section');
+        console.error(error);
         return res.status(500).json({
             success: false,
             error: error.message,
             message: "Error while updating the section",
-        })
+        });
     }
 }
 

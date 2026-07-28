@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { AiFillCaretDown } from "react-icons/ai"
 import { FaPlus } from "react-icons/fa"
-import { MdEdit } from "react-icons/md"
+import { MdEdit, MdQuiz } from "react-icons/md"
 import { RiDeleteBin6Line } from "react-icons/ri"
 import { RxDropdownMenu } from "react-icons/rx"
 import { useDispatch, useSelector } from "react-redux"
@@ -12,9 +12,6 @@ import { setCourse } from "../../../../../slices/courseSlice"
 import ConfirmationModal from "../../../../common/ConfirmationModal"
 import SubSectionModal from "./SubSectionModal"
 
-
-
-
 export default function NestedView({ handleChangeEditSectionName }) {
 
   const { course } = useSelector((state) => state.course)
@@ -23,6 +20,7 @@ export default function NestedView({ handleChangeEditSectionName }) {
 
   // States to keep track of mode of modal [add, view, edit]
   const [addSubSection, setAddSubsection] = useState(null)
+  const [addQuizSection, setAddQuizSection] = useState(null)
   const [viewSubSection, setViewSubSection] = useState(null)
   const [editSubSection, setEditSubSection] = useState(null)
   // to keep track of confirmation modal
@@ -111,10 +109,15 @@ export default function NestedView({ handleChangeEditSectionName }) {
                   onClick={() => setViewSubSection(data)}
                   className="flex cursor-pointer items-center justify-between gap-x-3 border-b-2 border-b-richblack-600 py-2"
                 >
-                  <div className="flex items-center gap-x-3 py-2 ">
+                  <div className="flex items-center gap-x-3 py-2">
                     <RxDropdownMenu className="text-2xl text-richblack-50" />
-                    <p className="font-semibold text-richblack-50">
+                    <p className="font-semibold text-richblack-50 flex items-center gap-2">
                       {data.title}
+                      {data.isQuiz && (
+                        <span className="text-[10px] bg-yellow-50/20 text-yellow-50 border border-yellow-50/30 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <MdQuiz size={12} /> Quiz
+                        </span>
+                      )}
                     </p>
                   </div>
                   <div
@@ -131,8 +134,8 @@ export default function NestedView({ handleChangeEditSectionName }) {
                     <button
                       onClick={() =>
                         setConfirmationModal({
-                          text1: "Delete this Sub-Section?",
-                          text2: "This lecture will be deleted",
+                          text1: "Delete this item?",
+                          text2: "This lecture / quiz will be deleted",
                           btn1Text: "Delete",
                           btn2Text: "Cancel",
                           btn1Handler: () =>
@@ -146,20 +149,29 @@ export default function NestedView({ handleChangeEditSectionName }) {
                   </div>
                 </div>
               ))}
-              {/* Add New Lecture to Section */}
-              <button
-                onClick={() => setAddSubsection(section._id)}
-                className="mt-3 flex items-center gap-x-1 text-yellow-50"
-              >
-                <FaPlus className="text-lg" />
-                <p>Add Lecture</p>
-              </button>
+
+              {/* Add New Lecture / Add Quiz to Section */}
+              <div className="mt-3 flex items-center gap-x-4">
+                <button
+                  onClick={() => setAddSubsection(section._id)}
+                  className="flex items-center gap-x-1 text-yellow-50 hover:underline text-sm font-semibold"
+                >
+                  <FaPlus className="text-xs" />
+                  <p>Add Lecture</p>
+                </button>
+
+                <button
+                  onClick={() => setAddQuizSection(section._id)}
+                  className="flex items-center gap-x-1 text-caribbeangreen-300 hover:text-caribbeangreen-100 transition text-sm font-semibold"
+                >
+                  <MdQuiz className="text-base" />
+                  <p>Add Quiz</p>
+                </button>
+              </div>
             </div>
           </details>
         ))}
       </div>
-
-
 
       {/* Modal Display */}
       {addSubSection ? (
@@ -167,6 +179,13 @@ export default function NestedView({ handleChangeEditSectionName }) {
           modalData={addSubSection}
           setModalData={setAddSubsection}
           add={true}
+        />
+      ) : addQuizSection ? (
+        <SubSectionModal
+          modalData={addQuizSection}
+          setModalData={setAddQuizSection}
+          add={true}
+          isQuizDefault={true}
         />
       ) : viewSubSection ? (
         <SubSectionModal

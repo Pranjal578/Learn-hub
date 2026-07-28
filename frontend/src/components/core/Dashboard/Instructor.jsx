@@ -138,12 +138,11 @@ export default function Instructor() {
       {courses.length > 0 && (
         <div className="flex flex-col gap-6 lg:flex-row">
           {/* Chart Container */}
-          <div className="flex-1 rounded-2xl border border-richblack-700 bg-richblack-800 p-6 shadow-md">
-            <p className="text-lg font-bold text-richblack-5 mb-4">Course Analytics & Visualization</p>
+          <div className="flex-1">
             {totalAmount > 0 || totalStudents > 0 ? (
               <InstructorChart courses={instructorData} />
             ) : (
-              <div className="flex h-64 flex-col items-center justify-center rounded-xl bg-richblack-900 p-6 text-center">
+              <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-richblack-700 bg-richblack-800 p-6 text-center shadow-md">
                 <VscGraph size={48} className="mb-2 text-richblack-500" />
                 <p className="text-lg font-semibold text-richblack-5">Awaiting Student Enrollments</p>
                 <p className="mt-1 text-xs text-richblack-300">

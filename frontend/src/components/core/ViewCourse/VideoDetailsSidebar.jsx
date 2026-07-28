@@ -4,12 +4,14 @@ import { useLocation, useNavigate, useParams } from "react-router-dom"
 
 import IconBtn from './../../common/IconBtn';
 import { setCourseViewSidebar } from "../../../slices/sidebarSlice"
+import { generateCourseCertificate } from "../../../services/operations/certificateAPI"
 
 import { BsChevronDown } from "react-icons/bs"
 import { IoIosArrowBack } from "react-icons/io"
 
 import { IoMdClose } from 'react-icons/io'
 import { HiMenuAlt1 } from 'react-icons/hi'
+import { MdWorkspacePremium } from "react-icons/md"
 
 
 
@@ -17,10 +19,12 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
 
   const [activeStatus, setActiveStatus] = useState("") // store curr section id
   const [videoBarActive, setVideoBarActive] = useState("") // store curr SubSection Id
+  const [loadingCert, setLoadingCert] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useDispatch();
 
+  const { token } = useSelector((state) => state.auth)
   const { sectionId, subSectionId } = useParams()
   const {
     courseSectionData,
@@ -45,8 +49,17 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
     })()
   }, [courseSectionData, courseEntireData, location.pathname])
 
+  const handleClaimCertificate = async () => {
+    setLoadingCert(true)
+    const cert = await generateCourseCertificate(courseEntireData?._id, token)
+    if (cert?.certificateCode) {
+      navigate(`/verify-certificate/${cert.certificateCode}`)
+    }
+    setLoadingCert(false)
+  }
 
-
+  const isCompleted100Percent =
+    totalNoOfLectures > 0 && completedLectures?.length === totalNoOfLectures
 
   return (
     <>
@@ -80,12 +93,32 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
           </div>
 
           {/* course Name - total No Of Lectures*/}
-          <div className="flex flex-col">
+          <div className="flex flex-col w-full">
             <p>{courseEntireData?.courseName}</p>
-            <p className="text-sm font-semibold text-richblack-500">
-              {completedLectures?.length} / {totalNoOfLectures}
+            <p className="text-sm font-semibold text-richblack-500 mt-1">
+              Progress: {completedLectures?.length} / {totalNoOfLectures} lectures ({totalNoOfLectures > 0 ? Math.round((completedLectures?.length / totalNoOfLectures) * 100) : 0}%)
             </p>
           </div>
+
+          {/* 100% Course Completion Certificate Widget */}
+          {isCompleted100Percent && (
+            <div className="w-full mt-2 p-3 bg-yellow-50/10 border border-yellow-50/30 rounded-xl text-center shadow-md">
+              <p className="text-xs font-bold text-yellow-50 flex items-center justify-center gap-1">
+                🏆 100% Course Completed!
+              </p>
+              <p className="text-[11px] text-richblack-300 mt-1 font-normal">
+                You have completed all lectures! Claim your official verifiable certificate now.
+              </p>
+              <button
+                disabled={loadingCert}
+                onClick={handleClaimCertificate}
+                className="mt-2.5 w-full py-2 px-3 bg-yellow-50 text-richblack-900 font-bold rounded-lg text-xs hover:bg-yellow-25 transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50"
+              >
+                <MdWorkspacePremium size={16} />
+                {loadingCert ? "Generating..." : "Claim Certificate"}
+              </button>
+            </div>
+          )}
         </div>
 
 

@@ -4,9 +4,16 @@ const fs = require('fs');
 
 exports.uploadImageToCloudinary = async (file, folder, height, quality) => {
     try {
-        const options = { folder: folder || process.env.FOLDER_NAME || "LearnHub", resource_type: 'auto' };
-        if (height) options.height = height;
-        if (quality) options.quality = quality;
+        const isVideo = (file && file.mimetype && file.mimetype.startsWith('video/')) || 
+                        (file && file.name && /\.(mp4|mkv|mov|avi|webm|flv|wmv)$/i.test(file.name));
+
+        const options = { 
+            folder: folder || process.env.FOLDER_NAME || "LearnHub", 
+            resource_type: isVideo ? 'video' : 'auto' 
+        };
+        
+        if (!isVideo && height) options.height = height;
+        if (!isVideo && quality) options.quality = quality;
 
         let target = null;
         if (typeof file === 'string') {
@@ -18,6 +25,13 @@ exports.uploadImageToCloudinary = async (file, folder, height, quality) => {
         }
 
         if (target) {
+            if (isVideo || (file && file.size && file.size > 10 * 1024 * 1024)) {
+                return await cloudinary.uploader.upload_large(target, {
+                    ...options,
+                    chunk_size: 6000000, // 6MB chunks for large video files
+                    resource_type: isVideo ? 'video' : 'auto'
+                });
+            }
             return await cloudinary.uploader.upload(target, options);
         }
 

@@ -1,86 +1,346 @@
 import { useState } from "react"
 import { Chart, registerables } from "chart.js"
-import { Pie } from "react-chartjs-2"
+import { Bar, Line } from "react-chartjs-2"
+import { FaChartBar, FaChartLine, FaUsers, FaCoins, FaLayerGroup } from "react-icons/fa"
 
 Chart.register(...registerables)
 
 export default function InstructorChart({ courses }) {
-  // State to keep track of the currently selected chart
+  // State for metric view: "students", "income", or "combined"
   const [currChart, setCurrChart] = useState("students")
+  // State for chart visualization type: "bar" or "line"
+  const [chartType, setChartType] = useState("bar")
 
-  // Function to generate random colors for the chart
-  const generateRandomColors = (numColors) => {
-    const colors = []
-    for (let i = 0; i < numColors; i++) {
-      const color = `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(
-        Math.random() * 256
-      )}, ${Math.floor(Math.random() * 256)})`
-      colors.push(color)
-    }
-    return colors
-  }
+  // Handle case where courses is null/empty
+  const courseList = courses || []
 
-  // Data for the chart displaying student information
+  // Calculate top performing courses for summary stats
+  const topEnrolled = courseList.length > 0 
+    ? [...courseList].sort((a, b) => b.totalStudentsEnrolled - a.totalStudentsEnrolled)[0] 
+    : null
+
+  const topEarning = courseList.length > 0 
+    ? [...courseList].sort((a, b) => b.totalAmountGenerated - a.totalAmountGenerated)[0] 
+    : null
+
+  // Chart Labels (Course Names)
+  const labels = courseList.map((course) => 
+    course.courseName.length > 22 
+      ? course.courseName.substring(0, 20) + "..." 
+      : course.courseName
+  )
+
+  // Datasets for single metric views
   const chartDataStudents = {
-    labels: courses.map((course) => course.courseName),
+    labels,
     datasets: [
       {
-        data: courses.map((course) => course.totalStudentsEnrolled),
-        backgroundColor: generateRandomColors(courses.length),
+        label: "Students Enrolled",
+        data: courseList.map((course) => course.totalStudentsEnrolled),
+        backgroundColor: "rgba(56, 189, 248, 0.75)",
+        borderColor: "#38bdf8",
+        borderWidth: 2,
+        borderRadius: 6,
+        hoverBackgroundColor: "rgba(56, 189, 248, 0.95)",
+        tension: 0.35,
+        fill: chartType === "line",
+        pointBackgroundColor: "#38bdf8",
+        pointBorderColor: "#0f172a",
+        pointHoverRadius: 7,
       },
     ],
   }
 
-  // Data for the chart displaying income information
   const chartIncomeData = {
-    labels: courses.map((course) => course.courseName),
+    labels,
     datasets: [
       {
-        data: courses.map((course) => course.totalAmountGenerated),
-        backgroundColor: generateRandomColors(courses.length),
+        label: "Income (₹)",
+        data: courseList.map((course) => course.totalAmountGenerated),
+        backgroundColor: "rgba(16, 185, 129, 0.75)",
+        borderColor: "#10b981",
+        borderWidth: 2,
+        borderRadius: 6,
+        hoverBackgroundColor: "rgba(16, 185, 129, 0.95)",
+        tension: 0.35,
+        fill: chartType === "line",
+        pointBackgroundColor: "#10b981",
+        pointBorderColor: "#0f172a",
+        pointHoverRadius: 7,
       },
     ],
   }
 
-  // Options for the chart
+  // Combined Dual-Axis Dataset
+  const chartCombinedData = {
+    labels,
+    datasets: [
+      {
+        label: "Students Enrolled",
+        data: courseList.map((course) => course.totalStudentsEnrolled),
+        backgroundColor: "rgba(56, 189, 248, 0.75)",
+        borderColor: "#38bdf8",
+        borderWidth: 2,
+        borderRadius: 6,
+        yAxisID: "y",
+        tension: 0.35,
+        fill: false,
+        pointBackgroundColor: "#38bdf8",
+        pointHoverRadius: 7,
+      },
+      {
+        label: "Income (₹)",
+        data: courseList.map((course) => course.totalAmountGenerated),
+        backgroundColor: "rgba(245, 158, 11, 0.75)",
+        borderColor: "#f59e0b",
+        borderWidth: 2,
+        borderRadius: 6,
+        yAxisID: "y1",
+        tension: 0.35,
+        fill: false,
+        pointBackgroundColor: "#f59e0b",
+        pointHoverRadius: 7,
+      },
+    ],
+  }
+
+  // Determine current dataset
+  const currentData =
+    currChart === "students"
+      ? chartDataStudents
+      : currChart === "income"
+      ? chartIncomeData
+      : chartCombinedData
+
+  // Chart Options
   const options = {
+    responsive: true,
     maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: "top",
+        labels: {
+          color: "#f1f2ff",
+          font: {
+            family: "Inter, sans-serif",
+            size: 12,
+            weight: "600",
+          },
+          usePointStyle: true,
+          padding: 16,
+        },
+      },
+      tooltip: {
+        backgroundColor: "#161D29",
+        titleColor: "#F1F2FF",
+        bodyColor: "#FFD60A",
+        borderColor: "#2C333F",
+        borderWidth: 1,
+        padding: 12,
+        boxPadding: 6,
+        usePointStyle: true,
+        callbacks: {
+          label: function (context) {
+            let label = context.dataset.label || ""
+            if (label) {
+              label += ": "
+            }
+            if (context.parsed.y !== null) {
+              if (
+                context.dataset.yAxisID === "y1" ||
+                label.toLowerCase().includes("income")
+              ) {
+                label += "₹" + context.parsed.y.toLocaleString("en-IN")
+              } else {
+                label += context.parsed.y.toLocaleString("en-IN") + " students"
+              }
+            }
+            return label
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          color: "rgba(255, 255, 255, 0.06)",
+          drawBorder: false,
+        },
+        ticks: {
+          color: "#999DAA",
+          font: {
+            family: "Inter, sans-serif",
+            size: 11,
+          },
+        },
+      },
+      y: {
+        type: "linear",
+        display: true,
+        position: "left",
+        grid: {
+          color: "rgba(255, 255, 255, 0.06)",
+          drawBorder: false,
+        },
+        ticks: {
+          color: "#999DAA",
+          font: {
+            family: "Inter, sans-serif",
+            size: 11,
+          },
+          precision: 0,
+        },
+        beginAtZero: true,
+        title: {
+          display: currChart === "combined",
+          text: "Students",
+          color: "#38bdf8",
+          font: { size: 12, weight: "bold" },
+        },
+      },
+      ...(currChart === "combined"
+        ? {
+            y1: {
+              type: "linear",
+              display: true,
+              position: "right",
+              grid: {
+                drawOnChartArea: false,
+              },
+              ticks: {
+                color: "#f59e0b",
+                font: {
+                  family: "Inter, sans-serif",
+                  size: 11,
+                },
+                callback: (value) => "₹" + value,
+              },
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "Income (₹)",
+                color: "#f59e0b",
+                font: { size: 12, weight: "bold" },
+              },
+            },
+          }
+        : {}),
+    },
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-y-4 rounded-md bg-richblack-800 p-6">
-      <p className="text-lg font-bold text-richblack-5">Visualize</p>
+    <div className="flex flex-1 flex-col gap-y-4 rounded-xl bg-richblack-800 p-4 sm:p-6 border border-richblack-700">
+      {/* Header controls: Metrics & Graph Types */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-richblack-700 pb-4">
+        <div>
+          <h3 className="text-lg font-bold text-richblack-5 flex items-center gap-2">
+            📊 Course Analytics Graph
+          </h3>
+          <p className="text-xs text-richblack-300">
+            Visualize your course enrollments and revenue with interactive graphs
+          </p>
+        </div>
 
-      <div className="space-x-4 font-semibold">
-        {/* Button to switch to the "students" chart */}
-        <button
-          onClick={() => setCurrChart("students")}
-          className={`rounded-sm p-1 px-3 transition-all duration-200 ${currChart === "students"
-            ? "bg-richblack-700 text-yellow-50"
-            : "text-yellow-400"
-            }`}
-        >
-          Students
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Metric Selector Tabs */}
+          <div className="flex items-center gap-1 rounded-lg bg-richblack-900 p-1 border border-richblack-700">
+            <button
+              onClick={() => setCurrChart("students")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                currChart === "students"
+                  ? "bg-richblack-700 text-yellow-50 shadow-sm"
+                  : "text-richblack-300 hover:text-richblack-5"
+              }`}
+            >
+              <FaUsers size={12} />
+              Students
+            </button>
 
-        {/* Button to switch to the "income" chart */}
-        <button
-          onClick={() => setCurrChart("income")}
-          className={`rounded-sm p-1 px-3 transition-all duration-200 ${currChart === "income"
-            ? "bg-richblack-700 text-yellow-50"
-            : "text-yellow-400"
-            }`}
-        >
-          Income
-        </button>
+            <button
+              onClick={() => setCurrChart("income")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                currChart === "income"
+                  ? "bg-richblack-700 text-yellow-50 shadow-sm"
+                  : "text-richblack-300 hover:text-richblack-5"
+              }`}
+            >
+              <FaCoins size={12} />
+              Income
+            </button>
+
+            <button
+              onClick={() => setCurrChart("combined")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                currChart === "combined"
+                  ? "bg-richblack-700 text-yellow-50 shadow-sm"
+                  : "text-richblack-300 hover:text-richblack-5"
+              }`}
+            >
+              <FaLayerGroup size={12} />
+              Overview
+            </button>
+          </div>
+
+          {/* Graph Type Selector (Bar vs Line) */}
+          <div className="flex items-center gap-1 rounded-lg bg-richblack-900 p-1 border border-richblack-700">
+            <button
+              onClick={() => setChartType("bar")}
+              title="Bar Chart Graph"
+              className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                chartType === "bar"
+                  ? "bg-yellow-50 text-richblack-900 font-semibold"
+                  : "text-richblack-300 hover:text-richblack-5"
+              }`}
+            >
+              <FaChartBar size={13} />
+              Bar
+            </button>
+            <button
+              onClick={() => setChartType("line")}
+              title="Line Chart Graph"
+              className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                chartType === "line"
+                  ? "bg-yellow-50 text-richblack-900 font-semibold"
+                  : "text-richblack-300 hover:text-richblack-5"
+              }`}
+            >
+              <FaChartLine size={13} />
+              Line
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="relative mx-auto aspect-square h-full w-full">
-        {/* Render the Pie chart based on the selected chart */}
-        <Pie
-          data={currChart === "students" ? chartDataStudents : chartIncomeData}
-          options={options}
-        />
+      {/* Top performance quick highlights */}
+      {courseList.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          {topEnrolled && (
+            <div className="flex items-center justify-between rounded-lg bg-richblack-900/60 p-2.5 px-3.5 border border-richblack-700/60">
+              <span className="text-richblack-300">🔥 Top Enrolled Course:</span>
+              <span className="font-semibold text-yellow-50 truncate max-w-[180px]">
+                {topEnrolled.courseName} ({topEnrolled.totalStudentsEnrolled} students)
+              </span>
+            </div>
+          )}
+          {topEarning && (
+            <div className="flex items-center justify-between rounded-lg bg-richblack-900/60 p-2.5 px-3.5 border border-richblack-700/60">
+              <span className="text-richblack-300">💰 Highest Earning Course:</span>
+              <span className="font-semibold text-caribbeangreen-300 truncate max-w-[180px]">
+                {topEarning.courseName} (₹{topEarning.totalAmountGenerated.toLocaleString("en-IN")})
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Graph Area */}
+      <div className="relative min-h-[320px] w-full pt-2">
+        {chartType === "bar" ? (
+          <Bar data={currentData} options={options} />
+        ) : (
+          <Line data={currentData} options={options} />
+        )}
       </div>
     </div>
   )

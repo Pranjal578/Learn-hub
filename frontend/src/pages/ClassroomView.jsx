@@ -28,6 +28,8 @@ import {
 
 import FilePreviewModal from "../components/common/FilePreviewModal";
 import { openFileResource } from "../utils/fileViewer";
+import ClassroomQuizzes from "../components/core/Classroom/ClassroomQuizzes";
+import { fetchClassroomQuizzes } from "../services/operations/quizAPI";
 
 // ======================== TAB BUTTON ========================
 function TabBtn({ label, active, onClick }) {
@@ -456,9 +458,20 @@ function ClassroomView() {
   const [assignmentFile, setAssignmentFile] = useState(null);
   const [showMaterialForm, setShowMaterialForm] = useState(false);
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
+  const [quizzesList, setQuizzesList] = useState([]);
+
+  const loadQuizzes = async () => {
+    if (classroomId && token) {
+      const data = await fetchClassroomQuizzes(classroomId, token);
+      setQuizzesList(data);
+    }
+  };
 
   useEffect(() => {
-    if (classroomId) dispatch(fetchClassroomDetails(classroomId, token));
+    if (classroomId) {
+      dispatch(fetchClassroomDetails(classroomId, token));
+      loadQuizzes();
+    }
     return () => dispatch(clearClassroom());
   }, [classroomId]);
 
@@ -547,6 +560,7 @@ function ClassroomView() {
         <TabBtn label="📢 Feed" active={activeTab === "feed"} onClick={() => setActiveTab("feed")} />
         <TabBtn label="📚 Materials" active={activeTab === "materials"} onClick={() => setActiveTab("materials")} />
         <TabBtn label="📝 Assignments" active={activeTab === "assignments"} onClick={() => setActiveTab("assignments")} />
+        <TabBtn label="📋 Quizzes" active={activeTab === "quizzes"} onClick={() => setActiveTab("quizzes")} />
         <TabBtn label="👥 Members" active={activeTab === "members"} onClick={() => setActiveTab("members")} />
       </div>
 
@@ -943,6 +957,17 @@ function ClassroomView() {
             )}
           </div>
         </div>
+      )}
+
+      {/* QUIZZES TAB */}
+      {activeTab === "quizzes" && (
+        <ClassroomQuizzes
+          quizzes={quizzesList}
+          isInstructor={isInstructor}
+          classroomId={classroomId}
+          token={token}
+          onQuizAdded={loadQuizzes}
+        />
       )}
 
       {/* FILE PREVIEW MODAL */}

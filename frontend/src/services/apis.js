@@ -94,3 +94,16 @@ export const adminEndpoints = {
   ADMIN_LOGIN_API: BASE_URL + "/auth/admin-login",
   GET_ALL_USERS_API: BASE_URL + "/profile/getUserDetails",
 }
+
+// QUIZ ENDPOINTS
+export const quizEndpoints = {
+  ADD_QUIZ_API: BASE_URL + "/quiz/add",
+  GET_CLASSROOM_QUIZZES_API: BASE_URL + "/quiz/classroom",
+}
+
+// CERTIFICATE ENDPOINTS
+export const certificateEndpoints = {
+  GENERATE_CERTIFICATE_API: BASE_URL + "/certificate/generate",
+  GENERATE_COURSE_CERTIFICATE_API: BASE_URL + "/certificate/generate-course",
+  VERIFY_CERTIFICATE_API: BASE_URL + "/certificate/verify",
+}
