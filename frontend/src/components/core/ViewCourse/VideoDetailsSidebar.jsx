@@ -39,7 +39,7 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
 
   // set which section - subSection is selected 
   useEffect(() => {
-    ; (() => {
+     (() => {
       if (!courseSectionData.length) return
       const currentSectionIndx = courseSectionData.findIndex((data) => data._id === sectionId)
       const currentSubSectionIndx = courseSectionData?.[currentSectionIndx]?.subSection.findIndex((data) => data._id === subSectionId)

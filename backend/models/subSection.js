@@ -20,7 +20,11 @@ const subSectionSchema = new mongoose.Schema({
     quizUrl: {
         type: String,
         default: ""
+    },
+    quizId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Quiz'
     }
 });
 
-module.exports = mongoose.model('SubSection', subSectionSchema) 
+module.exports = mongoose.model('SubSection', subSectionSchema)

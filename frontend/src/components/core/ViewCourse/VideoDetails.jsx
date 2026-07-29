@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useLocation } from "react-router-dom"
-import { useNavigate, useParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
 
 import "video-react/dist/video-react.css"
 import { BigPlayButton, Player } from "video-react"
@@ -9,8 +8,10 @@ import { BigPlayButton, Player } from "video-react"
 import { markLectureAsComplete } from "../../../services/operations/courseDetailsAPI"
 import { updateCompletedLectures } from "../../../slices/viewCourseSlice"
 import { setCourseViewSidebar } from "../../../slices/sidebarSlice"
+import { fetchQuizBySubSection } from "../../../services/operations/quizAPI"
 
 import IconBtn from "../../common/IconBtn"
+import StudentQuizView from "../Student/StudentQuizView"
 
 import { HiMenuAlt1 } from 'react-icons/hi'
 import { MdQuiz, MdLaunch, MdCheckCircle } from 'react-icons/md'
@@ -27,7 +28,8 @@ const VideoDetails = () => {
   const { token } = useSelector((state) => state.auth)
   const { courseSectionData, courseEntireData, completedLectures } = useSelector((state) => state.viewCourse)
 
-  const [videoData, setVideoData] = useState([])
+  const [videoData, setVideoData] = useState(null)
+  const [interactiveQuiz, setInteractiveQuiz] = useState(null)
   const [previewSource, setPreviewSource] = useState("")
   const [videoEnded, setVideoEnded] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -44,12 +46,21 @@ const VideoDetails = () => {
         const filteredVideoData = filteredData?.[0]?.subSection.filter(
           (data) => data._id === subSectionId
         )
-        if (filteredVideoData) setVideoData(filteredVideoData[0])
+        const targetSub = filteredVideoData?.[0] || null
+        setVideoData(targetSub)
         setPreviewSource(courseEntireData.thumbnail)
         setVideoEnded(false)
+
+        // If this subsection is a quiz, attempt to fetch native interactive quiz
+        if (targetSub && (targetSub.isQuiz || targetSub.quizUrl || targetSub.quizId)) {
+          const quizObj = await fetchQuizBySubSection(targetSub._id, token)
+          setInteractiveQuiz(quizObj)
+        } else {
+          setInteractiveQuiz(null)
+        }
       }
     })()
-  }, [courseSectionData, courseEntireData, location.pathname])
+  }, [courseSectionData, courseEntireData, location.pathname, subSectionId])
 
   // check if the lecture is the first video of the course
   const isFirstVideo = () => {
@@ -132,6 +143,13 @@ const VideoDetails = () => {
     setLoading(false)
   }
 
+  const handleInteractiveQuizSubmitted = async () => {
+    // Automatically mark lecture as complete when student submits interactive quiz
+    if (!completedLectures.includes(subSectionId)) {
+      await handleLectureCompletion()
+    }
+  }
+
   const { courseViewSidebar } = useSelector(state => state.sidebar)
 
   if (courseViewSidebar && window.innerWidth <= 640) return;
@@ -151,77 +169,114 @@ const VideoDetails = () => {
       </div>
 
       {isQuizItem ? (
-        /* QUIZ ASSESSMENT CARD VIEW */
-        <div className="my-4 flex flex-col gap-6 rounded-2xl border border-richblack-700 bg-richblack-800 p-8 shadow-xl">
-          <div className="flex items-center justify-between border-b border-richblack-700 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-50/10 text-yellow-50">
-                <MdQuiz size={28} />
-              </div>
-              <div>
-                <span className="text-xs font-bold text-yellow-50 uppercase tracking-widest bg-yellow-50/10 px-2.5 py-0.5 rounded-full border border-yellow-50/20">
-                  Course Quiz & Assessment
-                </span>
-                <h2 className="text-2xl font-bold text-richblack-5 mt-1">{videoData?.title}</h2>
+        /* QUIZ ASSESSMENT VIEW */
+        <div className="space-y-6">
+          {interactiveQuiz ? (
+            /* Interactive MCQ Quiz View */
+            <div className="space-y-4">
+              <StudentQuizView
+                quiz={interactiveQuiz}
+                token={token}
+                onSubmitted={handleInteractiveQuizSubmitted}
+                onClose={() => {}}
+              />
+
+              <div className="flex items-center justify-between border-t border-richblack-700 pt-6 mt-4">
+                {!isFirstVideo() ? (
+                  <button
+                    disabled={loading}
+                    onClick={goToPrevVideo}
+                    className="rounded-lg bg-richblack-700 px-5 py-2 text-sm font-semibold text-richblack-100 hover:bg-richblack-600 transition"
+                  >
+                    ← Previous Item
+                  </button>
+                ) : <div />}
+
+                {!isLastVideo() ? (
+                  <button
+                    disabled={loading}
+                    onClick={goToNextVideo}
+                    className="rounded-lg bg-yellow-50 px-5 py-2 text-sm font-bold text-richblack-900 hover:bg-yellow-25 transition"
+                  >
+                    Next Item →
+                  </button>
+                ) : <div />}
               </div>
             </div>
+          ) : (
+            /* External Quiz Form Link View */
+            <div className="my-4 flex flex-col gap-6 rounded-2xl border border-richblack-700 bg-richblack-800 p-8 shadow-xl">
+              <div className="flex items-center justify-between border-b border-richblack-700 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-50/10 text-yellow-50">
+                    <MdQuiz size={28} />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-yellow-50 uppercase tracking-widest bg-yellow-50/10 px-2.5 py-0.5 rounded-full border border-yellow-50/20">
+                      Course Quiz & Assessment
+                    </span>
+                    <h2 className="text-2xl font-bold text-richblack-5 mt-1">{videoData?.title}</h2>
+                  </div>
+                </div>
 
-            {isCompleted && (
-              <div className="flex items-center gap-1.5 rounded-full bg-caribbeangreen-500/20 px-3 py-1 text-xs font-bold text-caribbeangreen-300 border border-caribbeangreen-500/30">
-                <MdCheckCircle size={16} /> Completed
+                {isCompleted && (
+                  <div className="flex items-center gap-1.5 rounded-full bg-caribbeangreen-500/20 px-3 py-1 text-xs font-bold text-caribbeangreen-300 border border-caribbeangreen-500/30">
+                    <MdCheckCircle size={16} /> Completed
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <p className="text-sm text-richblack-300 leading-relaxed">
-            {videoData?.description || "Complete this quiz assessment to test your knowledge and progress through the course."}
-          </p>
+              <p className="text-sm text-richblack-300 leading-relaxed">
+                {videoData?.description || "Complete this quiz assessment to test your knowledge and progress through the course."}
+              </p>
 
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            {quizLink && (
-              <a
-                href={quizLink.startsWith("http") ? quizLink : `https://${quizLink}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-yellow-50 px-6 py-3 text-sm font-bold text-richblack-900 hover:bg-yellow-25 shadow-lg transition"
-              >
-                <MdLaunch size={18} /> Open Quiz Form
-              </a>
-            )}
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                {quizLink && (
+                  <a
+                    href={quizLink.startsWith("http") ? quizLink : `https://${quizLink}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl bg-yellow-50 px-6 py-3 text-sm font-bold text-richblack-900 hover:bg-yellow-25 shadow-lg transition"
+                  >
+                    <MdLaunch size={18} /> Open Quiz Form
+                  </a>
+                )}
 
-            {!isCompleted && (
-              <button
-                disabled={loading}
-                onClick={handleLectureCompletion}
-                className="inline-flex items-center gap-2 rounded-xl border border-caribbeangreen-500 bg-caribbeangreen-500/20 px-6 py-3 text-sm font-bold text-caribbeangreen-300 hover:bg-caribbeangreen-500/30 transition disabled:opacity-50"
-              >
-                <MdCheckCircle size={18} />
-                {loading ? "Saving..." : "Mark Quiz as Completed"}
-              </button>
-            )}
-          </div>
+                {!isCompleted && (
+                  <button
+                    disabled={loading}
+                    onClick={handleLectureCompletion}
+                    className="inline-flex items-center gap-2 rounded-xl border border-caribbeangreen-500 bg-caribbeangreen-500/20 px-6 py-3 text-sm font-bold text-caribbeangreen-300 hover:bg-caribbeangreen-500/30 transition disabled:opacity-50"
+                  >
+                    <MdCheckCircle size={18} />
+                    {loading ? "Saving..." : "Mark Quiz as Completed"}
+                  </button>
+                )}
+              </div>
 
-          <div className="flex items-center justify-between border-t border-richblack-700 pt-6 mt-4">
-            {!isFirstVideo() ? (
-              <button
-                disabled={loading}
-                onClick={goToPrevVideo}
-                className="rounded-lg bg-richblack-700 px-5 py-2 text-sm font-semibold text-richblack-100 hover:bg-richblack-600 transition"
-              >
-                ← Previous Item
-              </button>
-            ) : <div />}
+              <div className="flex items-center justify-between border-t border-richblack-700 pt-6 mt-4">
+                {!isFirstVideo() ? (
+                  <button
+                    disabled={loading}
+                    onClick={goToPrevVideo}
+                    className="rounded-lg bg-richblack-700 px-5 py-2 text-sm font-semibold text-richblack-100 hover:bg-richblack-600 transition"
+                  >
+                    ← Previous Item
+                  </button>
+                ) : <div />}
 
-            {!isLastVideo() ? (
-              <button
-                disabled={loading}
-                onClick={goToNextVideo}
-                className="rounded-lg bg-yellow-50 px-5 py-2 text-sm font-bold text-richblack-900 hover:bg-yellow-25 transition"
-              >
-                Next Item →
-              </button>
-            ) : <div />}
-          </div>
+                {!isLastVideo() ? (
+                  <button
+                    disabled={loading}
+                    onClick={goToNextVideo}
+                    className="rounded-lg bg-yellow-50 px-5 py-2 text-sm font-bold text-richblack-900 hover:bg-yellow-25 transition"
+                  >
+                    Next Item →
+                  </button>
+                ) : <div />}
+              </div>
+            </div>
+          )}
         </div>
       ) : !videoData ? (
         <img

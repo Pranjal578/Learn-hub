@@ -97,8 +97,11 @@ export const adminEndpoints = {
 
 // QUIZ ENDPOINTS
 export const quizEndpoints = {
-  ADD_QUIZ_API: BASE_URL + "/quiz/add",
+  CREATE_QUIZ_API: BASE_URL + "/quiz/create",
+  SUBMIT_QUIZ_API: BASE_URL + "/quiz/submit",
   GET_CLASSROOM_QUIZZES_API: BASE_URL + "/quiz/classroom",
+  GET_QUIZ_BY_SUBSECTION_API: BASE_URL + "/quiz/subsection",
+  GET_QUIZ_BY_ID_API: BASE_URL + "/quiz",
 }
 
 // CERTIFICATE ENDPOINTS
