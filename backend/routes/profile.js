@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { auth, isInstructor } = require("../middleware/auth");
+const { validateImageUpload } = require("../middleware/fileValidator");
 
 // controllers
 const {
@@ -29,8 +30,8 @@ router.get('/getUserDetails', auth, getUserDetails);
 router.get('/getEnrolledCourses', auth, getEnrolledCourses);
 router.post('/unenrollCourse', auth, unenrollCourse);
 
-// update profile image
-router.put('/updateUserProfileImage', auth, updateUserProfileImage);
+// update profile image — validated against image allowlist & magic bytes
+router.put('/updateUserProfileImage', auth, validateImageUpload('profileImage'), updateUserProfileImage);
 
 // instructor Dashboard Details
 router.get('/instructorDashboard', auth, isInstructor, instructorDashboard);

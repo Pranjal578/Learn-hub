@@ -112,11 +112,10 @@ exports.createCourse = async (req, res) => {
     }
 
     catch (error) {
-        console.log('Error while creating new course:', error);
+        console.error('Error while creating new course:', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to create Course',
-            error: error.message
         });
     }
 };
@@ -144,11 +143,9 @@ exports.getAllCourses = async (req, res) => {
     }
 
     catch (error) {
-        console.log('Error while fetching data of all courses');
-        console.log(error);
+        console.error('Error while fetching data of all courses:', error);
         res.status(500).json({
             success: false,
-            error: error.message,
             message: 'Error while fetching data of all courses'
         })
     }
@@ -223,11 +220,9 @@ exports.getCourseDetails = async (req, res) => {
     }
 
     catch (error) {
-        console.log('Error while fetching course details');
-        console.log(error);
+        console.error('Error while fetching course details:', error);
         return res.status(500).json({
             success: false,
-            error: error.message,
             message: 'Error while fetching course details',
         });
     }
@@ -301,9 +296,10 @@ exports.getFullCourseDetails = async (req, res) => {
             },
         })
     } catch (error) {
+        console.error('Error while fetching full course details:', error);
         return res.status(500).json({
             success: false,
-            message: error.message,
+            message: 'Failed to fetch full course details',
         })
     }
 }
@@ -375,11 +371,10 @@ exports.editCourse = async (req, res) => {
             data: updatedCourse,
         })
     } catch (error) {
-        console.error(error)
+        console.error('Error while updating course:', error);
         res.status(500).json({
             success: false,
             message: "Error while updating course",
-            error: error.message,
         })
     }
 }
@@ -404,11 +399,10 @@ exports.getInstructorCourses = async (req, res) => {
             message: 'Courses made by Instructor fetched successfully'
         })
     } catch (error) {
-        console.error(error)
+        console.error('Error while fetching instructor courses:', error);
         res.status(500).json({
             success: false,
             message: "Failed to retrieve instructor courses",
-            error: error.message,
         })
     }
 }
@@ -491,11 +485,10 @@ exports.deleteCourse = async (req, res) => {
         })
 
     } catch (error) {
-        console.error(error)
+        console.error('Error while deleting course:', error);
         return res.status(500).json({
             success: false,
             message: "Error while Deleting course",
-            error: error.message,
         })
     }
 }

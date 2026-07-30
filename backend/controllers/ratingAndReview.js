@@ -71,11 +71,9 @@ exports.createRating = async (req, res) => {
         })
     }
     catch (error) {
-        console.log('Error while creating rating and review');
-        console.log(error);
+        console.error('Error while creating rating and review:', error);
         return res.status(500).json({
             success: false,
-            error: error.message,
             message: 'Error while creating rating and review',
         })
     }
@@ -123,10 +121,10 @@ exports.getAverageRating = async (req, res) => {
             })
     }
     catch(error) {
-        console.log(error);
+        console.error('Error getting average rating:', error);
         return res.status(500).json({
             success:false,
-            message:error.message,
+            message:'Error calculating average rating',
         })
     }
 }
@@ -157,11 +155,9 @@ exports.getAllRatingReview = async(req, res)=>{
         });
     }
     catch(error){
-        console.log('Error while fetching all ratings');
-        console.log(error);
+        console.error('Error while fetching all ratings:', error);
         return res.status(500).json({
             success: false,
-            error: error.message,
             message: 'Error while fetching all ratings',
         })
     }

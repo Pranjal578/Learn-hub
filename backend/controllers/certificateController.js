@@ -69,7 +69,7 @@ exports.generateCertificate = async (req, res) => {
     });
   } catch (error) {
     console.error("Error generating classroom certificate:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Error generating classroom certificate" });
   }
 };
 
@@ -182,7 +182,7 @@ exports.generateCourseCertificate = async (req, res) => {
     });
   } catch (error) {
     console.error("Error generating course certificate:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Error generating course certificate" });
   }
 };
 
@@ -208,6 +208,6 @@ exports.verifyCertificate = async (req, res) => {
     });
   } catch (error) {
     console.error("Error verifying certificate:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Error verifying certificate" });
   }
 };

@@ -132,7 +132,7 @@ exports.capturePayment = async (req, res) => {
     });
   } catch (error) {
     console.error("Capture Payment Error:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Payment initiation failed. Please try again." });
   }
 };
 
@@ -183,7 +183,7 @@ exports.verifyPayment = async (req, res) => {
     return res.status(200).json({ success: true, message: "Payment verified successfully" });
   } catch (error) {
     console.error("Verify Payment Error:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Payment verification failed. Please try again." });
   }
 };
 

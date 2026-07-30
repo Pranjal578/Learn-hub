@@ -70,8 +70,8 @@ exports.createQuiz = async (req, res) => {
       data: newQuiz
     });
   } catch (error) {
-    console.error("Error creating quiz:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error('Error creating quiz:', error);
+    return res.status(500).json({ success: false, message: 'Failed to create quiz. Please try again.' });
   }
 };
 
@@ -134,8 +134,8 @@ exports.submitQuiz = async (req, res) => {
       submission: submissionData
     });
   } catch (error) {
-    console.error("Error submitting quiz:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error('Error submitting quiz:', error);
+    return res.status(500).json({ success: false, message: 'Failed to submit quiz. Please try again.' });
   }
 };
 
@@ -162,8 +162,8 @@ exports.getClassroomQuizzes = async (req, res) => {
       data: result
     });
   } catch (error) {
-    console.error("Error fetching classroom quizzes:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error('Error fetching classroom quizzes:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch quizzes. Please try again.' });
   }
 };
 
@@ -190,8 +190,8 @@ exports.getQuizById = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error fetching quiz by ID:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error('Error fetching quiz by ID:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch quiz. Please try again.' });
   }
 };
 
@@ -218,7 +218,7 @@ exports.getQuizBySubSection = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error fetching quiz by SubSection:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error('Error fetching quiz by SubSection:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch quiz. Please try again.' });
   }
 };

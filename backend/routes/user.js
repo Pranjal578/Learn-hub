@@ -3,60 +3,64 @@ const router = express.Router();
 
 // Controllers
 const {
-    signup,
-    login,
-    sendOTP,
-    changePassword,
-    adminLogin,
+  signup,
+  login,
+  sendOTP,
+  changePassword,
+  adminLogin,
 } = require('../controllers/auth');
 
-// Resetpassword controllers
+// Reset password controllers
 const {
-    resetPasswordToken,
-    resetPassword,
+  resetPasswordToken,
+  resetPassword,
 } = require('../controllers/resetPassword');
-
 
 // Middleware
 const { auth } = require('../middleware/auth');
+const validate = require('../middleware/validate');
+const {
+  authLimiter,
+  otpLimiter,
+  resetLimiter,
+} = require('../middleware/rateLimiter');
+const {
+  signupValidators,
+  loginValidators,
+  adminLoginValidators,
+  sendOTPValidators,
+  changePasswordValidators,
+  resetPasswordTokenValidators,
+  resetPasswordValidators,
+} = require('../middleware/validators/authValidators');
 
 
-// Routes for Login, Signup, and Authentication
+// ── Authentication Routes ─────────────────────────────────────
 
-// ********************************************************************************************************
-//                                      Authentication routes
-// ********************************************************************************************************
+// Signup — rate limited + strict validation
+router.post('/signup',    authLimiter, signupValidators,   validate, signup);
 
-// Route for user signup
-router.post('/signup', signup);
+// Login — rate limited + strict validation
+router.post('/login',     authLimiter, loginValidators,    validate, login);
 
-// Route for user login
-router.post('/login', login);
+// Send OTP — extra-strict limiter (5 per 15 min)
+router.post('/sendotp',   otpLimiter,  sendOTPValidators,  validate, sendOTP);
 
-// Route for sending OTP to the user's email
-router.post('/sendotp', sendOTP);
-
-// Route for Changing the password
-router.post('/changepassword', auth, changePassword);
+// Change password — authenticated; moderate validation
+router.post('/changepassword', auth, changePasswordValidators, validate, changePassword);
 
 
+// ── Reset Password ────────────────────────────────────────────
 
-// ********************************************************************************************************
-//                                      Reset Password
-// ********************************************************************************************************
+// Generate reset token — strict limiter (5 per 15 min)
+router.post('/reset-password-token', resetLimiter, resetPasswordTokenValidators, validate, resetPasswordToken);
 
-// Route for generating a reset password token
-router.post('/reset-password-token', resetPasswordToken);
-
-// Route for resetting user's password after verification
-router.post("/reset-password", resetPassword)
-
-// ********************************************************************************************************
-//                                      Admin Portal Login (isolated)
-// ********************************************************************************************************
-
-// Route for Admin portal login (validates accountType === Admin)
-router.post('/admin-login', adminLogin);
+// Apply new password — strict limiter + validation
+router.post('/reset-password',       resetLimiter, resetPasswordValidators,      validate, resetPassword);
 
 
-module.exports = router
+// ── Admin Portal Login (isolated) ────────────────────────────
+router.post('/admin-login', authLimiter, adminLoginValidators, validate, adminLogin);
+
+
+module.exports = router;

@@ -51,7 +51,6 @@ exports.createClassroom = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to create classroom",
-            error: error.message,
         });
     }
 };
@@ -105,7 +104,6 @@ exports.joinClassroom = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Enrollment failed",
-            error: error.message,
         });
     }
 };
@@ -166,7 +164,6 @@ exports.getClassroomDetails = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to fetch classroom details",
-            error: error.message,
         });
     }
 };
@@ -212,7 +209,6 @@ exports.getMyClassrooms = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to fetch classrooms",
-            error: error.message,
         });
     }
 };
@@ -253,7 +249,7 @@ exports.postMaterial = async (req, res) => {
         });
     } catch (error) {
         console.error("Error posting material:", error);
-        return res.status(500).json({ success: false, message: "Failed to post material", error: error.message });
+        return res.status(500).json({ success: false, message: "Failed to post material" });
     }
 };
 
@@ -283,7 +279,7 @@ exports.postNotice = async (req, res) => {
         });
     } catch (error) {
         console.error("Error posting notice:", error);
-        return res.status(500).json({ success: false, message: "Failed to post notice", error: error.message });
+        return res.status(500).json({ success: false, message: "Failed to post notice" });
     }
 };
 
@@ -327,7 +323,7 @@ exports.createAssignment = async (req, res) => {
         });
     } catch (error) {
         console.error("Error creating assignment:", error);
-        return res.status(500).json({ success: false, message: "Failed to create assignment", error: error.message });
+        return res.status(500).json({ success: false, message: "Failed to create assignment" });
     }
 };
 
@@ -362,7 +358,7 @@ exports.extendAssignmentDeadline = async (req, res) => {
         });
     } catch (error) {
         console.error("Error extending deadline:", error);
-        return res.status(500).json({ success: false, message: "Failed to extend deadline", error: error.message });
+        return res.status(500).json({ success: false, message: "Failed to extend deadline" });
     }
 };
 
@@ -439,7 +435,7 @@ exports.submitAssignment = async (req, res) => {
         });
     } catch (error) {
         console.error("Error submitting assignment:", error);
-        return res.status(500).json({ success: false, message: "Failed to submit assignment", error: error.message });
+        return res.status(500).json({ success: false, message: "Failed to submit assignment" });
     }
 };
 
@@ -479,7 +475,7 @@ exports.deleteAssignmentSubmission = async (req, res) => {
         });
     } catch (error) {
         console.error("Error deleting submission:", error);
-        return res.status(500).json({ success: false, message: "Failed to delete submission", error: error.message });
+        return res.status(500).json({ success: false, message: "Failed to delete submission" });
     }
 };
 
@@ -515,7 +511,7 @@ exports.leaveClassroom = async (req, res) => {
         });
     } catch (error) {
         console.error("Error leaving classroom:", error);
-        return res.status(500).json({ success: false, message: "Failed to leave classroom", error: error.message });
+        return res.status(500).json({ success: false, message: "Failed to leave classroom" });
     }
 };
 
@@ -554,7 +550,7 @@ exports.deleteClassroom = async (req, res) => {
         });
     } catch (error) {
         console.error("Error deleting classroom:", error);
-        return res.status(500).json({ success: false, message: "Failed to delete classroom", error: error.message });
+        return res.status(500).json({ success: false, message: "Failed to delete classroom" });
     }
 };
 
@@ -573,6 +569,6 @@ exports.getAllClassrooms = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching all classrooms:", error);
-        return res.status(500).json({ success: false, message: "Failed to fetch classrooms", error: error.message });
+        return res.status(500).json({ success: false, message: "Failed to fetch classrooms" });
     }
 };

@@ -89,8 +89,7 @@ exports.createSubSection = async (req, res) => {
         console.error('Error while creating SubSection:', error);
         res.status(500).json({
             success: false,
-            error: error.message,
-            message: 'Error while creating SubSection'
+            message: 'Failed to create lecture. Please try again.'
         });
     }
 }
@@ -161,12 +160,10 @@ exports.updateSubSection = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error while updating the section');
-        console.error(error);
+        console.error('Error while updating SubSection:', error);
         return res.status(500).json({
             success: false,
-            error: error.message,
-            message: "Error while updating the section",
+            message: 'Failed to update lecture. Please try again.'
         });
     }
 }
@@ -207,12 +204,10 @@ exports.deleteSubSection = async (req, res) => {
             message: "SubSection deleted successfully",
         })
     } catch (error) {
-        console.error(error)
+        console.error('Error while deleting SubSection:', error);
         return res.status(500).json({
             success: false,
-
-            error: error.message,
-            message: "An error occurred while deleting the SubSection",
+            message: 'Failed to delete lecture. Please try again.'
         })
     }
 }

@@ -40,23 +40,20 @@ exports.auth = (req, res, next) => {
             req.user = decode;
         }
         catch (error) {
-            console.log('Error while decoding token');
-            console.log(error);
+            console.error('Token verification failed:', error.message);
             return res.status(401).json({
                 success: false,
-                error: error.message,
-                messgae: 'Error while decoding token'
+                message: 'Invalid or expired token. Please log in again.'
             })
         }
         // go to next middleware
         next();
     }
     catch (error) {
-        console.log('Error while token validating');
-        console.log(error);
+        console.error('Error while token validating:', error);
         return res.status(500).json({
             success: false,
-            messgae: 'Error while token validating'
+            message: 'Authentication error. Please try again.'
         })
     }
 }
@@ -79,12 +76,10 @@ exports.isStudent = (req, res, next) => {
         next();
     }
     catch (error) {
-        console.log('Error while cheching user validity with student accountType');
-        console.log(error);
+        console.error('Error in isStudent check:', error);
         return res.status(500).json({
             success: false,
-            error: error.message,
-            messgae: 'Error while cheching user validity with student accountType'
+            message: 'Authorization error. Please try again.'
         })
     }
 }
@@ -104,12 +99,10 @@ exports.isInstructor = (req, res, next) => {
         next();
     }
     catch (error) {
-        console.log('Error while cheching user validity with Instructor accountType');
-        console.log(error);
+        console.error('Error in isInstructor check:', error);
         return res.status(500).json({
             success: false,
-            error: error.message,
-            messgae: 'Error while cheching user validity with Instructor accountType'
+            message: 'Authorization error. Please try again.'
         })
     }
 }
@@ -129,12 +122,10 @@ exports.isAdmin = (req, res, next) => {
         next();
     }
     catch (error) {
-        console.log('Error while cheching user validity with Admin accountType');
-        console.log(error);
+        console.error('Error in isAdmin check:', error);
         return res.status(500).json({
             success: false,
-            error: error.message,
-            messgae: 'Error while cheching user validity with Admin accountType'
+            message: 'Authorization error. Please try again.'
         })
     }
 }

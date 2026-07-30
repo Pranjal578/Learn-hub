@@ -57,17 +57,16 @@ exports.sendOTP = async (req, res) => {
         // return response successfully
         res.status(200).json({
             success: true,
-            otp,
-            message: 'Otp sent successfully'
+            // NOTE: OTP is intentionally NOT returned here — it is sent to the user's email only.
+            message: 'OTP sent successfully. Please check your email.'
         });
     }
 
     catch (error) {
-        console.log('Error while generating Otp - ', error);
-        res.status(200).json({
+        console.error('Error while generating OTP:', error);
+        res.status(500).json({
             success: false,
-            message: 'Error while generating Otp',
-            error: error.message
+            message: 'Error while generating OTP. Please try again.'
         });
     }
 }
@@ -134,12 +133,10 @@ exports.signup = async (req, res) => {
     }
 
     catch (error) {
-        console.log('Error while registering user (signup)');
-        console.log(error)
-        res.status(401).json({
+        console.error('Error while registering user (signup):', error);
+        res.status(500).json({
             success: false,
-            error: error.message,
-            messgae: 'User cannot be registered , Please try again..!'
+            message: 'User registration failed. Please try again.'
         })
     }
 }
@@ -210,12 +207,10 @@ exports.login = async (req, res) => {
     }
 
     catch (error) {
-        console.log('Error while Login user');
-        console.log(error);
+        console.error('Error while login:', error);
         res.status(500).json({
             success: false,
-            error: error.message,
-            messgae: 'Error while Login user'
+            message: 'Login failed. Please try again.'
         })
     }
 }
@@ -272,9 +267,8 @@ exports.adminLogin = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Password not matched' });
         }
     } catch (error) {
-        console.log('Error while Admin Login');
-        console.log(error);
-        res.status(500).json({ success: false, error: error.message, message: 'Error while Admin Login' });
+        console.error('Error while Admin Login:', error);
+        res.status(500).json({ success: false, message: 'Login failed. Please try again.' });
     }
 };
 
@@ -340,12 +334,9 @@ exports.changePassword = async (req, res) => {
             // console.log("Email sent successfully:", emailResponse);
         }
         catch (error) {
-            console.error("Error occurred while sending email:", error);
-            return res.status(500).json({
-                success: false,
-                message: "Error occurred while sending email",
-                error: error.message,
-            });
+            console.error('Error while sending password-change email:', error);
+            // Email failure should not block the password change success response
+            // but log it so it can be investigated
         }
 
 
@@ -357,12 +348,10 @@ exports.changePassword = async (req, res) => {
     }
 
     catch (error) {
-        console.log('Error while changing passowrd');
-        console.log(error)
+        console.error('Error while changing password:', error);
         res.status(500).json({
             success: false,
-            error: error.message,
-            messgae: 'Error while changing passowrd'
+            message: 'Password change failed. Please try again.'
         })
     }
 }

@@ -12,7 +12,6 @@ const {
     editCourse,
     deleteCourse,
     getInstructorCourses,
-
 } = require('../controllers/course')
 
 const { updateCourseProgress } = require('../controllers/courseProgress')
@@ -24,14 +23,12 @@ const {
     getCategoryPageDetails,
 } = require('../controllers/category');
 
-
 // sections controllers
 const {
     createSection,
     updateSection,
     deleteSection,
 } = require('../controllers/section');
-
 
 // subSections controllers
 const {
@@ -40,7 +37,6 @@ const {
     deleteSubSection
 } = require('../controllers/subSection');
 
-
 // rating controllers
 const {
     createRating,
@@ -48,9 +44,20 @@ const {
     getAllRatingReview
 } = require('../controllers/ratingAndReview');
 
-
 // Middlewares
-const { auth, isAdmin, isInstructor, isStudent } = require('../middleware/auth')
+const { auth, isAdmin, isInstructor, isStudent } = require('../middleware/auth');
+const validate = require('../middleware/validate');
+const { validateImageUpload, validateVideoUpload } = require('../middleware/fileValidator');
+const {
+    createCourseValidators,
+    editCourseValidators,
+    createSectionValidators,
+    updateSectionValidators,
+} = require('../middleware/validators/courseValidators');
+const {
+    createSubSectionValidators,
+    updateSubSectionValidators,
+} = require('../middleware/validators/subSectionValidators');
 
 
 // ********************************************************************************************************
@@ -58,19 +65,19 @@ const { auth, isAdmin, isInstructor, isStudent } = require('../middleware/auth')
 // ********************************************************************************************************
 // Courses can Only be Created by Instructors
 
-router.post('/createCourse', auth, isInstructor, createCourse);
+router.post('/createCourse', auth, isInstructor, validateImageUpload('thumbnailImage'), createCourseValidators, validate, createCourse);
 
 //Add a Section to a Course
-router.post('/addSection', auth, isInstructor, createSection);
+router.post('/addSection', auth, isInstructor, createSectionValidators, validate, createSection);
 // Update a Section
-router.post('/updateSection', auth, isInstructor, updateSection);
+router.post('/updateSection', auth, isInstructor, updateSectionValidators, validate, updateSection);
 // Delete a Section
 router.post('/deleteSection', auth, isInstructor, deleteSection);
 
 // Add a Sub Section to a Section
-router.post('/addSubSection', auth, isInstructor, createSubSection);
+router.post('/addSubSection', auth, isInstructor, validateVideoUpload('video'), createSubSectionValidators, validate, createSubSection);
 // Edit Sub Section
-router.post('/updateSubSection', auth, isInstructor, updateSubSection);
+router.post('/updateSubSection', auth, isInstructor, validateVideoUpload('video'), updateSubSectionValidators, validate, updateSubSection);
 // Delete Sub Section
 router.post('/deleteSubSection', auth, isInstructor, deleteSubSection);
 
@@ -84,16 +91,14 @@ router.post('/getFullCourseDetails', auth, getFullCourseDetails);
 // Get all Courses Under a Specific Instructor
 router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses)
 
-
 // Edit Course routes
-router.post("/editCourse", auth, isInstructor, editCourse)
+router.post("/editCourse", auth, isInstructor, validateImageUpload('thumbnailImage'), editCourseValidators, validate, editCourse)
 
 // Delete a Course
 router.delete("/deleteCourse", auth, deleteCourse)
 
 // update Course Progress
 router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress)
-
 
 
 // ********************************************************************************************************
@@ -104,8 +109,6 @@ router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress)
 router.post('/createCategory', auth, isAdmin, createCategory);
 router.get('/showAllCategories', showAllCategories);
 router.post("/getCategoryPageDetails", getCategoryPageDetails)
-
-
 
 
 // ********************************************************************************************************

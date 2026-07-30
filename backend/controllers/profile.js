@@ -53,11 +53,9 @@ exports.updateProfile = async (req, res) => {
         });
     }
     catch (error) {
-        console.log('Error while updating profile');
-        console.log(error);
+        console.error('Error while updating profile:', error);
         res.status(500).json({
             success: false,
-            error: error.message,
             message: 'Error while updating profile'
         })
     }
@@ -111,11 +109,9 @@ exports.deleteAccount = async (req, res) => {
         })
     }
     catch (error) {
-        console.log('Error while updating profile');
-        console.log(error);
+        console.error('Error while deleting profile:', error);
         res.status(500).json({
             success: false,
-            error: error.message,
             message: 'Error while deleting profile'
         })
     }
@@ -147,11 +143,9 @@ exports.getUserDetails = async (req, res) => {
         })
     }
     catch (error) {
-        console.log('Error while fetching user details');
-        console.log(error);
+        console.error('Error while fetching user details:', error);
         res.status(500).json({
             success: false,
-            error: error.message,
             message: 'Error while fetching user details'
         })
     }
@@ -192,11 +186,9 @@ exports.updateUserProfileImage = async (req, res) => {
         })
     }
     catch (error) {
-        console.log('Error while updating user profile image');
-        console.log(error);
+        console.error('Error while updating user profile image:', error);
         return res.status(500).json({
             success: false,
-            error: error.message,
             message: 'Error while updating user profile image',
         })
     }
@@ -265,9 +257,10 @@ exports.getEnrolledCourses = async (req, res) => {
             data: userDetails.courses,
         })
     } catch (error) {
+        console.error('Error while fetching enrolled courses:', error);
         return res.status(500).json({
             success: false,
-            message: error.message,
+            message: 'Failed to fetch enrolled courses',
         })
     }
 }
@@ -340,7 +333,6 @@ exports.unenrollCourse = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to unenroll from course",
-            error: error.message,
         });
     }
 };

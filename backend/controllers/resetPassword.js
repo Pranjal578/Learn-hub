@@ -29,8 +29,9 @@ exports.resetPasswordToken = async (req, res) => {
             { new: true }); // by marking true, it will return updated user
 
 
-        // create url
-        const url = `https://study-notion-mern-stack.netlify.app/update-password/${token}`;
+        // create url using the configured frontend URL (never hardcode a domain)
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const url = `${frontendUrl}/update-password/${token}`;
 
         // send email containing url
         await mailSender(email, 'Password Reset Link', `Password Reset Link : ${url}`);
@@ -43,12 +44,10 @@ exports.resetPasswordToken = async (req, res) => {
     }
 
     catch (error) {
-        console.log('Error while creating token for reset password');
-        console.log(error)
+        console.error('Error while creating reset password token:', error);
         res.status(500).json({
             success: false,
-            error: error.message,
-            message: 'Error while creating token for reset password'
+            message: 'Failed to send password reset email. Please try again.'
         })
     }
 }
@@ -119,12 +118,10 @@ exports.resetPassword = async (req, res) => {
     }
 
     catch (error) {
-        console.log('Error while reseting password');
-        console.log(error);
+        console.error('Error while resetting password:', error);
         res.status(500).json({
             success: false,
-            error: error.message,
-            message: 'Error while reseting password12'
+            message: 'Password reset failed. Please request a new reset link.'
         });
     }
 }

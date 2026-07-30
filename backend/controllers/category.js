@@ -29,12 +29,10 @@ exports.createCategory = async (req, res) => {
         });
     }
     catch (error) {
-        console.log('Error while creating Category');
-        console.log(error);
+        console.error('Error while creating Category:', error);
         res.status(500).json({
             success: false,
-            message: 'Error while creating Category',
-            error: error.message
+            message: 'Error while creating Category'
         })
     }
 }
@@ -139,10 +137,10 @@ exports.getCategoryPageDetails = async (req, res) => {
             },
         })
     } catch (error) {
+        console.error('Error while getting category page details:', error);
         return res.status(500).json({
             success: false,
             message: "Internal server error",
-            error: error.message,
         })
     }
 }
