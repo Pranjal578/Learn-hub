@@ -1,5 +1,6 @@
 const Section = require('../models/section');
 const SubSection = require('../models/subSection');
+const Quiz = require('../models/Quiz');
 const { uploadImageToCloudinary } = require('../utils/imageUploader');
 
 
@@ -42,6 +43,11 @@ exports.createSubSection = async (req, res) => {
             timeDuration = `${videoFileDetails?.duration || 0}`;
         }
 
+        // A native quiz is created before the subsection, so its URL carries
+        // the quiz id until this handler can establish the two-way link.
+        const localQuizMatch = typeof quizUrl === "string" && quizUrl.match(/^\/quiz\/([a-f\d]{24})$/i);
+        const quizId = localQuizMatch?.[1];
+
         // create entry in DB
         const SubSectionDetails = await SubSection.create({
             title,
@@ -49,8 +55,21 @@ exports.createSubSection = async (req, res) => {
             description: description || "",
             videoUrl,
             isQuiz: isQuizItem,
-            quizUrl: quizUrl || videoUrl
+            quizUrl: isQuizItem ? (quizUrl || "") : "", // only set quizUrl for quiz items, NOT for video lectures
+            quizId: quizId || undefined,
         });
+
+        if (quizId) {
+            const quiz = await Quiz.findByIdAndUpdate(
+                quizId,
+                { subSectionId: SubSectionDetails._id },
+                { new: true }
+            );
+            if (!quiz) {
+                await SubSection.findByIdAndDelete(SubSectionDetails._id);
+                return res.status(404).json({ success: false, message: "Interactive quiz not found" });
+            }
+        }
 
         // link subsection id to section
         const updatedSection = await Section.findByIdAndUpdate(

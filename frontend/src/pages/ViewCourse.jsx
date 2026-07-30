@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { toast } from "react-hot-toast"
 import { useDispatch, useSelector } from "react-redux"
 import { Outlet, useParams } from "react-router-dom"
 
@@ -25,12 +26,21 @@ export default function ViewCourse() {
 
   // get Full Details Of Course
   useEffect(() => {
+    // Clear stale data so the player doesn't briefly show a "no video" placeholder
+    dispatch(setCourseSectionData([]))
     ; (async () => {
       const courseData = await getFullDetailsOfCourse(courseId, token)
-      // console.log("Course Data here... ", courseData.courseDetails)
+      // console.log("Course Data here... ", courseData)
+
+      // Guard: if the API failed or returned no courseDetails, show an error
+      if (!courseData || !courseData.courseDetails) {
+        toast.error(courseData?.message || "Could not load course. You may not be enrolled.")
+        return
+      }
+
       dispatch(setCourseSectionData(courseData.courseDetails.courseContent))
       dispatch(setEntireCourseData(courseData.courseDetails))
-      dispatch(setCompletedLectures(courseData.completedVideos))
+      dispatch(setCompletedLectures(courseData.completedVideos || []))
       let lectures = 0
       courseData?.courseDetails?.courseContent?.forEach((sec) => {
         lectures += sec.subSection.length
@@ -38,7 +48,7 @@ export default function ViewCourse() {
       dispatch(setTotalNoOfLectures(lectures))
     })()
 
-  }, [])
+  }, [courseId])
 
 
   // handle sidebar for small devices

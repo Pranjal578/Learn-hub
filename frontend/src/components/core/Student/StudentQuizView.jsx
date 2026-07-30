@@ -6,9 +6,12 @@ import { MdCheckCircle, MdCancel, MdSend, MdOutlineAssignment, MdArrowBack } fro
 export default function StudentQuizView({ quiz, token, onSubmitted, onClose }) {
   const [shuffledQuestions, setShuffledQuestions] = useState([]);
   const [selectedAnswers, setSelectedAnswers] = useState({});
-  const [submissionResult, setSubmissionResult] = useState(quiz?.mySubmission || null);
+  // Prefer mySubmission from API; fall back to null (will be set after submitting)
+  const [submissionResult, setSubmissionResult] = useState(
+    quiz?.mySubmission || (quiz?.hasSubmitted ? {} : null)
+  );
 
-  // Shuffle options ONLY on frontend when quiz loads
+  // Shuffle options ONLY on frontend when quiz loads (skip if already submitted)
   useEffect(() => {
     if (quiz && quiz.questions) {
       const randomized = quiz.questions.map((q) => ({
@@ -16,6 +19,10 @@ export default function StudentQuizView({ quiz, token, onSubmitted, onClose }) {
         shuffledOptions: [...q.options].sort(() => Math.random() - 0.5),
       }));
       setShuffledQuestions(randomized);
+      // If already submitted, reset submissionResult to use API data
+      if (quiz.hasSubmitted && quiz.mySubmission) {
+        setSubmissionResult(quiz.mySubmission);
+      }
     }
   }, [quiz]);
 
@@ -28,6 +35,12 @@ export default function StudentQuizView({ quiz, token, onSubmitted, onClose }) {
   };
 
   const handleSubmit = async () => {
+    // Guard: block resubmission at UI level too
+    if (quiz?.hasSubmitted || submissionResult) {
+      toast.error("You have already submitted this quiz.");
+      return;
+    }
+
     // Check if student answered all questions
     const unanswered = quiz.questions.filter((q) => !selectedAnswers[q._id]);
     if (unanswered.length > 0) {
@@ -60,6 +73,7 @@ export default function StudentQuizView({ quiz, token, onSubmitted, onClose }) {
     }
   };
 
+  // isCompleted is true if we have submission data OR backend says already submitted
   const isCompleted = !!submissionResult || quiz?.hasSubmitted;
 
   return (
@@ -132,81 +146,99 @@ export default function StudentQuizView({ quiz, token, onSubmitted, onClose }) {
           </button>
         </div>
       ) : (
-        /* Score & Detailed Review Mode */
+        /* Score & Detailed Review Mode — read-only, shown after submission or on revisit */
         <div className="space-y-6">
-          <div className="bg-richblack-900 p-6 rounded-xl border border-richblack-700 text-center space-y-2">
-            <h3 className="text-xs uppercase tracking-widest font-semibold text-richblack-400">
-              Quiz Evaluation Results
-            </h3>
-            <p className="text-4xl font-extrabold text-yellow-50">
-              {submissionResult?.score} / {submissionResult?.totalQuestions}
-            </p>
-            <p className="text-xs text-caribbeangreen-300 font-medium">
-              Percentage: {Math.round(((submissionResult?.score || 0) / (submissionResult?.totalQuestions || 1)) * 100)}%
-            </p>
-            <p className="text-[11px] text-richblack-400 pt-2">
-              Note: Submissions are final. Resubmission or submission deletion is disabled.
-            </p>
-          </div>
+          {/* Score summary card */}
+          {submissionResult && typeof submissionResult.score !== "undefined" ? (
+            <div className="bg-richblack-900 p-6 rounded-xl border border-richblack-700 text-center space-y-2">
+              <h3 className="text-xs uppercase tracking-widest font-semibold text-richblack-400">
+                Quiz Evaluation Results
+              </h3>
+              <p className="text-4xl font-extrabold text-yellow-50">
+                {submissionResult.score} / {submissionResult.totalQuestions}
+              </p>
+              <p className="text-xs text-caribbeangreen-300 font-medium">
+                Percentage:{" "}
+                {Math.round(
+                  ((submissionResult.score || 0) / (submissionResult.totalQuestions || 1)) * 100
+                )}%
+              </p>
+              <p className="text-[11px] text-richblack-400 pt-2">
+                ✅ Submissions are final — resubmission is not allowed.
+              </p>
+            </div>
+          ) : (
+            /* Already submitted but mySubmission not returned by API */
+            <div className="bg-richblack-900 p-6 rounded-xl border border-richblack-700 text-center space-y-2">
+              <span className="text-3xl">🔒</span>
+              <h3 className="text-base font-bold text-richblack-5">Quiz Already Submitted</h3>
+              <p className="text-sm text-richblack-400">
+                You have already submitted this quiz. Resubmission is not allowed.
+              </p>
+            </div>
+          )}
 
-          <div className="space-y-4">
-            <h4 className="text-base font-bold text-richblack-5 border-b border-richblack-700 pb-2">
-              Detailed Answer Breakdown
-            </h4>
+          {/* Detailed answer breakdown (only if answers are available) */}
+          {submissionResult?.answers?.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="text-base font-bold text-richblack-5 border-b border-richblack-700 pb-2">
+                Detailed Answer Breakdown
+              </h4>
 
-            {quiz.questions.map((q, idx) => {
-              // Find submission answer record for this question
-              const ansRecord = submissionResult?.answers?.find(
-                (a) => a.questionId?.toString() === q._id?.toString()
-              );
-              const chosen = ansRecord ? ansRecord.chosenAnswer : "";
-              const isCorrect = ansRecord ? ansRecord.isCorrect : false;
+              {quiz.questions.map((q, idx) => {
+                const ansRecord = submissionResult.answers.find(
+                  (a) => a.questionId?.toString() === q._id?.toString()
+                );
+                const chosen = ansRecord ? ansRecord.chosenAnswer : "";
+                const isCorrect = ansRecord ? ansRecord.isCorrect : false;
 
-              return (
-                <div
-                  key={idx}
-                  className={`p-4 rounded-xl border space-y-3 ${
-                    isCorrect
-                      ? "bg-caribbeangreen-500/10 border-caribbeangreen-500/30"
-                      : "bg-pink-900/10 border-pink-700/40"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-semibold text-sm text-richblack-5">
-                      {idx + 1}. {q.questionText}
-                    </p>
-                    {isCorrect ? (
-                      <span className="flex items-center gap-1 text-xs text-caribbeangreen-300 font-bold bg-caribbeangreen-500/20 px-2.5 py-0.5 rounded-full border border-caribbeangreen-500/30">
-                        <MdCheckCircle size={14} /> Correct
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-xs text-pink-300 font-bold bg-pink-900/30 px-2.5 py-0.5 rounded-full border border-pink-700/40">
-                        <MdCancel size={14} /> Incorrect
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="text-xs space-y-1.5 pt-1">
-                    <p className="text-richblack-300">
-                      Your Choice:{" "}
-                      <span
-                        className={`font-semibold ${
-                          isCorrect ? "text-caribbeangreen-300" : "text-pink-300"
-                        }`}
-                      >
-                        {chosen || "Not Answered"}
-                      </span>
-                    </p>
-                    {!isCorrect && (
-                      <p className="text-caribbeangreen-300 font-medium">
-                        Correct Answer: <span className="font-semibold underline">{q.correctAnswer}</span>
+                return (
+                  <div
+                    key={idx}
+                    className={`p-4 rounded-xl border space-y-3 ${
+                      isCorrect
+                        ? "bg-caribbeangreen-500/10 border-caribbeangreen-500/30"
+                        : "bg-pink-900/10 border-pink-700/40"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-sm text-richblack-5">
+                        {idx + 1}. {q.questionText}
                       </p>
-                    )}
+                      {isCorrect ? (
+                        <span className="flex items-center gap-1 text-xs text-caribbeangreen-300 font-bold bg-caribbeangreen-500/20 px-2.5 py-0.5 rounded-full border border-caribbeangreen-500/30 whitespace-nowrap">
+                          <MdCheckCircle size={14} /> Correct
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-xs text-pink-300 font-bold bg-pink-900/30 px-2.5 py-0.5 rounded-full border border-pink-700/40 whitespace-nowrap">
+                          <MdCancel size={14} /> Incorrect
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="text-xs space-y-1.5 pt-1">
+                      <p className="text-richblack-300">
+                        Your Choice:{" "}
+                        <span
+                          className={`font-semibold ${
+                            isCorrect ? "text-caribbeangreen-300" : "text-pink-300"
+                          }`}
+                        >
+                          {chosen || "Not Answered"}
+                        </span>
+                      </p>
+                      {!isCorrect && (
+                        <p className="text-caribbeangreen-300 font-medium">
+                          Correct Answer:{" "}
+                          <span className="font-semibold underline">{q.correctAnswer}</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
