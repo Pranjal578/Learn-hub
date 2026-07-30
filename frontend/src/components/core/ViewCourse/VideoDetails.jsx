@@ -38,6 +38,12 @@ const VideoDetails = () => {
   // Track whether course data has started loading (non-empty section data received at least once)
   const [courseLoaded, setCourseLoaded] = useState(false)
 
+  // Prevent infinite refresh loops — reset whenever the subSectionId changes
+  const refreshAttemptedRef = React.useRef(false)
+  useEffect(() => {
+    refreshAttemptedRef.current = false
+  }, [subSectionId])
+
   useEffect(() => {
     ; (async () => {
       if (!courseSectionData.length) return  // still waiting for data
@@ -52,6 +58,15 @@ const VideoDetails = () => {
           (data) => data._id === subSectionId
         )
         const targetSub = filteredVideoData?.[0] || null
+
+        // If the subsection isn't in Redux yet (e.g. newly created lecture),
+        // fire a refresh event so ViewCourse re-fetches — but only once per nav
+        if (!targetSub && subSectionId && !refreshAttemptedRef.current) {
+          refreshAttemptedRef.current = true
+          window.dispatchEvent(new Event('course:refresh'))
+          return  // wait for re-render with fresh data
+        }
+
         setVideoData(targetSub)
         setPreviewSource(courseEntireData.thumbnail)
         setVideoEnded(false)

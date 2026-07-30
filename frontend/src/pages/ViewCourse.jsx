@@ -24,30 +24,32 @@ export default function ViewCourse() {
   const dispatch = useDispatch()
   const [reviewModal, setReviewModal] = useState(false)
 
-  // get Full Details Of Course
+  // ── helper: fetch and populate course data ──────────────────────────────
+  const loadCourseData = async () => {
+    const courseData = await getFullDetailsOfCourse(courseId, token)
+    if (!courseData || !courseData.courseDetails) {
+      toast.error(courseData?.message || "Could not load course. You may not be enrolled.")
+      return
+    }
+    dispatch(setCourseSectionData(courseData.courseDetails.courseContent))
+    dispatch(setEntireCourseData(courseData.courseDetails))
+    dispatch(setCompletedLectures(courseData.completedVideos || []))
+    let lectures = 0
+    courseData?.courseDetails?.courseContent?.forEach((sec) => {
+      lectures += sec.subSection.length
+    })
+    dispatch(setTotalNoOfLectures(lectures))
+  }
+
+  // Initial load — also listen for manual refresh requests from child routes
+  // (e.g. VideoDetails triggers 'course:refresh' when a subsection isn't found)
   useEffect(() => {
-    // Clear stale data so the player doesn't briefly show a "no video" placeholder
-    dispatch(setCourseSectionData([]))
-    ; (async () => {
-      const courseData = await getFullDetailsOfCourse(courseId, token)
-      // console.log("Course Data here... ", courseData)
+    dispatch(setCourseSectionData([]))   // clear stale data first
+    loadCourseData()
 
-      // Guard: if the API failed or returned no courseDetails, show an error
-      if (!courseData || !courseData.courseDetails) {
-        toast.error(courseData?.message || "Could not load course. You may not be enrolled.")
-        return
-      }
-
-      dispatch(setCourseSectionData(courseData.courseDetails.courseContent))
-      dispatch(setEntireCourseData(courseData.courseDetails))
-      dispatch(setCompletedLectures(courseData.completedVideos || []))
-      let lectures = 0
-      courseData?.courseDetails?.courseContent?.forEach((sec) => {
-        lectures += sec.subSection.length
-      })
-      dispatch(setTotalNoOfLectures(lectures))
-    })()
-
+    const handleRefresh = () => loadCourseData()
+    window.addEventListener('course:refresh', handleRefresh)
+    return () => window.removeEventListener('course:refresh', handleRefresh)
   }, [courseId])
 
 
