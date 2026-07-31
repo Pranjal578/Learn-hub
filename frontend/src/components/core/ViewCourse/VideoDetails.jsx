@@ -405,14 +405,20 @@ const VideoDetails = () => {
       ) : !videoData ? (
         /* ── LOADING / PREVIEW STATE ── */
         courseLoaded ? (
-          // Course data loaded but no matching subsection found — show thumbnail
-          previewSource ? (
-            <img
-              src={previewSource}
-              alt="Preview"
-              className="h-full w-full rounded-md object-cover"
-            />
-          ) : null
+          subSectionId ? (
+            // Course data loaded but no matching subsection found — show placeholder
+            <div className="flex aspect-video w-full items-center justify-center rounded-xl bg-richblack-800 border border-richblack-700">
+              <div className="flex flex-col items-center gap-3 text-center px-6">
+                <p className="text-lg font-semibold text-richblack-100">Content not available</p>
+                <p className="text-sm text-richblack-400">This lecture could not be loaded. It might have been recently updated or removed.</p>
+              </div>
+            </div>
+          ) : (
+            // No subsection selected yet, show course thumbnail
+            <div className="flex aspect-video w-full items-center justify-center rounded-xl bg-richblack-800">
+              <img src={previewSource} alt="Course Thumbnail" className="h-full w-full rounded-md object-cover" />
+            </div>
+          )
         ) : (
           // Course data still loading — show a spinner
           <div className="flex h-64 w-full items-center justify-center">

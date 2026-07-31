@@ -1,7 +1,7 @@
 const Section = require('../models/section');
 const SubSection = require('../models/subSection');
 const Quiz = require('../models/Quiz');
-const { uploadImageToCloudinary } = require('../utils/imageUploader');
+const { uploadImageToCloudinary, deleteResourceFromCloudinary } = require('../utils/imageUploader');
 
 
 
@@ -39,7 +39,10 @@ exports.createSubSection = async (req, res) => {
             timeDuration = "Quiz / Assessment";
         } else if (videoFile) {
             const videoFileDetails = await uploadImageToCloudinary(videoFile, process.env.FOLDER_NAME);
-            videoUrl = videoFileDetails.secure_url;
+            videoUrl = videoFileDetails?.secure_url;
+            if (!videoUrl) {
+                throw new Error("Video upload completed without a playable URL");
+            }
             timeDuration = `${videoFileDetails?.duration || 0}`;
         }
 
@@ -87,6 +90,13 @@ exports.createSubSection = async (req, res) => {
     }
     catch (error) {
         console.error('Error while creating SubSection:', error);
+        // Cloudinary rejects files over 100 MB on the free plan
+        if (error?.http_code === 400 && error?.message?.toLowerCase().includes('file size too large')) {
+            return res.status(400).json({
+                success: false,
+                message: `Video file is too large for upload (max 100 MB). Please compress your video or use a smaller file.`
+            });
+        }
         res.status(500).json({
             success: false,
             message: 'Failed to create lecture. Please try again.'
@@ -132,20 +142,28 @@ exports.updateSubSection = async (req, res) => {
             subSection.isQuiz = isQuiz === "true" || isQuiz === true;
         }
 
-        if (quizUrl !== undefined) {
-            subSection.quizUrl = quizUrl;
-            if (subSection.isQuiz) {
-                subSection.videoUrl = quizUrl;
+        if (subSection.isQuiz) {
+            if (quizUrl !== undefined) {
+                subSection.quizUrl = quizUrl;
+                subSection.videoUrl = quizUrl; // For quizzes, videoUrl might store the quiz link
             }
         }
 
         // upload video to cloudinary if provided
         const video = req.files ? (req.files.video || req.files.videoFile) : null;
         if (video) {
+            // If a new video is uploaded, delete the old one from Cloudinary
+            if (subSection.videoUrl) {
+                await deleteResourceFromCloudinary(subSection.videoUrl);
+            }
+
             const uploadDetails = await uploadImageToCloudinary(video, process.env.FOLDER_NAME);
+            if (!uploadDetails?.secure_url) {
+                throw new Error("Video upload completed without a playable URL");
+            }
             subSection.videoUrl = uploadDetails.secure_url;
             subSection.timeDuration = `${uploadDetails?.duration || 0}`;
-            subSection.isQuiz = false;
+            subSection.isQuiz = false; // It's a video lecture now
         }
 
         // save data to DB
@@ -161,6 +179,13 @@ exports.updateSubSection = async (req, res) => {
     }
     catch (error) {
         console.error('Error while updating SubSection:', error);
+        // Cloudinary rejects files over 100 MB on the free plan
+        if (error?.http_code === 400 && error?.message?.toLowerCase().includes('file size too large')) {
+            return res.status(400).json({
+                success: false,
+                message: `Video file is too large for upload (max 100 MB). Please compress your video or use a smaller file.`
+            });
+        }
         return res.status(500).json({
             success: false,
             message: 'Failed to update lecture. Please try again.'
@@ -170,10 +195,23 @@ exports.updateSubSection = async (req, res) => {
 
 
 
+
+
+// ... (other code) ...
+
 // ================ Delete SubSection ================
 exports.deleteSubSection = async (req, res) => {
     try {
-        const { subSectionId, sectionId } = req.body
+        const { subSectionId, sectionId } = req.body;
+
+        // Find the subsection to be deleted to get its details
+        const subSection = await SubSection.findById(subSectionId);
+
+        if (!subSection) {
+            return res.status(404).json({ success: false, message: "SubSection not found" });
+        }
+
+        // Remove subsection from the section
         await Section.findByIdAndUpdate(
             { _id: sectionId },
             {
@@ -181,33 +219,29 @@ exports.deleteSubSection = async (req, res) => {
                     subSection: subSectionId,
                 },
             }
-        )
+        );
 
-        // delete from DB
-        const subSection = await SubSection.findByIdAndDelete({ _id: subSectionId })
-
-        if (!subSection) {
-            return res
-                .status(404)
-                .json({ success: false, message: "SubSection not found" })
+        // Delete the video from Cloudinary if it exists
+        if (subSection.videoUrl && !subSection.isQuiz) {
+            await deleteResourceFromCloudinary(subSection.videoUrl);
         }
 
-        const updatedSection = await Section.findById(sectionId).populate('subSection')
+        // Delete the subsection from the database
+        await SubSection.findByIdAndDelete({ _id: subSectionId });
 
-        // In frontned we have to take care - when subsection is deleted we are sending ,
-        // only section data not full course details as we do in others 
+        const updatedSection = await Section.findById(sectionId).populate('subSection');
 
-        // success response
+        // Success response
         return res.json({
             success: true,
             data: updatedSection,
             message: "SubSection deleted successfully",
-        })
+        });
     } catch (error) {
         console.error('Error while deleting SubSection:', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to delete lecture. Please try again.'
-        })
+        });
     }
-}
+};

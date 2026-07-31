@@ -26,10 +26,22 @@ exports.uploadImageToCloudinary = async (file, folder, height, quality) => {
 
         if (target) {
             if (isVideo || (file && file.size && file.size > 10 * 1024 * 1024)) {
-                return await cloudinary.uploader.upload_large(target, {
-                    ...options,
-                    chunk_size: 6000000, // 6MB chunks for large video files
-                    resource_type: isVideo ? 'video' : 'auto'
+                // upload_large returns a writable stream.  Await the callback
+                // instead, so callers receive the final Cloudinary result (and
+                // therefore its secure_url) only after all chunks are uploaded.
+                return await new Promise((resolve, reject) => {
+                    cloudinary.uploader.upload_large(
+                        target,
+                        {
+                            ...options,
+                            chunk_size: 6000000, // 6MB chunks for large video files
+                            resource_type: isVideo ? 'video' : 'auto'
+                        },
+                        (error, result) => {
+                            if (error) return reject(error);
+                            resolve(result);
+                        }
+                    );
                 });
             }
             return await cloudinary.uploader.upload(target, options);
@@ -61,8 +73,10 @@ exports.deleteResourceFromCloudinary = async (url) => {
     if (!url) return;
 
     try {
-        const result = await cloudinary.uploader.destroy(url);
-        console.log(`Deleted resource with public ID: ${url}`);
+        // Extract public ID from the URL
+        const publicId = url.split('/').pop().split('.')[0];
+        const result = await cloudinary.uploader.destroy(publicId);
+        console.log(`Deleted resource with public ID: ${publicId}`);
         console.log('Delete Resourse result = ', result)
         return result;
     } catch (error) {
