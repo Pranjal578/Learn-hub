@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: learnhub-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL:-mongodb+srv://pranjalshukla2222_db_user:gpw5P6oKqbkPrEoW@learnhub.g8rnicv.mongodb.net/learnhub?retryWrites=true&w=majority&appName=learnhub}
+      - JWT_SECRET=${JWT_SECRET:-learnhub_jwt_secret_key_2024}
+      - CLOUD_NAME=${CLOUD_NAME:-qosnqkhf}
+      - API_KEY=${API_KEY:-973197712875668}
+      - API_SECRET=${API_SECRET:-3N2PBtLZSls5iW-wg4zHVRv0G7U}
+      - FOLDER_NAME=${FOLDER_NAME:-LearnHub}
+      - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
+      - MAIL_USER=${MAIL_USER:-placeholder@gmail.com}
+      - MAIL_PASS=${MAIL_PASS:-placeholder_password}
+      - RAZORPAY_KEY=${RAZORPAY_KEY:-placeholder_razorpay_key}
+      - RAZORPAY_SECRET=${RAZORPAY_SECRET:-placeholder_razorpay_secret}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+    networks:
+      - learnhub-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: learnhub-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - learnhub-net
+
+networks:
+  learnhub-net:
+    driver: bridge

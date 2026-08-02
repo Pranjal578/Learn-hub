@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, matchPath, useLocation } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 
@@ -60,28 +60,29 @@ const Navbar = () => {
 
     // when user scroll down , we will hide navbar , and if suddenly scroll up , we will show navbar 
     const [showNavbar, setShowNavbar] = useState('top');
-    const [lastScrollY, setLastScrollY] = useState(0);
+    const lastScrollY = useRef(0);
+
     useEffect(() => {
+        const controlNavbar = () => {
+            const currentScrollY = window.scrollY;
+            if (currentScrollY > 200) {
+                if (currentScrollY > lastScrollY.current) {
+                    setShowNavbar('hide');
+                } else {
+                    setShowNavbar('show');
+                }
+            } else {
+                setShowNavbar('top');
+            }
+            lastScrollY.current = currentScrollY;
+        };
+
         window.addEventListener('scroll', controlNavbar);
 
         return () => {
             window.removeEventListener('scroll', controlNavbar);
-        }
-    },)
-
-    // control Navbar
-    const controlNavbar = () => {
-        if (window.scrollY > 200) {
-            if (window.scrollY > lastScrollY)
-                setShowNavbar('hide')
-
-            else setShowNavbar('show')
-        }
-
-        else setShowNavbar('top')
-
-        setLastScrollY(window.scrollY);
-    }
+        };
+    }, []);
 
 
 

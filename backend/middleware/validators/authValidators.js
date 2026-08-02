@@ -9,15 +9,11 @@ const { body } = require('express-validator');
 
 // ── Reusable field rules ──────────────────────────────────────
 
-/** Strong password: 8–128 chars, upper, lower, digit, special */
+/** Password: min 6 chars */
 const strongPassword = (field = 'password') =>
   body(field)
     .isString().withMessage(`${field} must be a string`)
-    .isLength({ min: 8, max: 128 }).withMessage(`${field} must be 8–128 characters`)
-    .matches(/[A-Z]/).withMessage(`${field} must contain at least one uppercase letter`)
-    .matches(/[a-z]/).withMessage(`${field} must contain at least one lowercase letter`)
-    .matches(/[0-9]/).withMessage(`${field} must contain at least one digit`)
-    .matches(/[^A-Za-z0-9]/).withMessage(`${field} must contain at least one special character`);
+    .isLength({ min: 6, max: 128 }).withMessage(`${field} must be at least 6 characters`);
 
 /** Basic name field: 1–50 chars, letters / spaces / hyphens only */
 const nameField = (field) =>

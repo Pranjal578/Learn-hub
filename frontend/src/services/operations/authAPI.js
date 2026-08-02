@@ -76,7 +76,6 @@ export function signUp(accountType, firstName, lastName, email, password, confir
       toast.error(error?.response?.data?.message || "Signup Failed");
     }
     dispatch(setLoading(false))
-    toast.dismiss(toastId)
   }
 }
 
@@ -127,7 +126,6 @@ export function login(email, password, navigate) {
       toast.error(error.response?.data?.message)
     }
     dispatch(setLoading(false))
-    toast.dismiss(toastId)
   }
 }
 

@@ -21,6 +21,11 @@ exports.createQuiz = async (req, res) => {
       if (!classroom) {
         return res.status(404).json({ success: false, message: "Classroom not found" });
       }
+      const isInstructor = classroom.instructor.toString() === instructorId.toString();
+      const isAdmin = (req.user.accountType || "").toLowerCase() === "admin";
+      if (!isInstructor && !isAdmin) {
+        return res.status(403).json({ success: false, message: "Only the classroom instructor or admin can create quizzes for this classroom." });
+      }
     }
 
     // Validate questions and options length (min 3, max 5)
@@ -88,6 +93,21 @@ exports.submitQuiz = async (req, res) => {
     const quiz = await Quiz.findById(quizId);
     if (!quiz) return res.status(404).json({ success: false, message: "Quiz not found" });
 
+    // Check if quiz belongs to a classroom and if student is enrolled
+    if (quiz.classroomId) {
+      const classroom = await Classroom.findById(quiz.classroomId);
+      if (!classroom) {
+        return res.status(404).json({ success: false, message: "Associated classroom not found." });
+      }
+      const isEnrolled = classroom.studentsEnrolled.some(s => s.toString() === studentId.toString());
+      if (!isEnrolled) {
+        return res.status(403).json({
+          success: false,
+          message: "You must be enrolled in this classroom to submit this quiz."
+        });
+      }
+    }
+
     // Check if student already submitted
     const alreadySubmitted = quiz.submissions.some(sub => sub.student.toString() === studentId.toString());
     if (alreadySubmitted) {
@@ -139,21 +159,47 @@ exports.submitQuiz = async (req, res) => {
   }
 };
 
-// Fetch all quizzes for a given classroom
+// Fetch all quizzes for a given classroom (enrolled students, instructor, or admin only)
 exports.getClassroomQuizzes = async (req, res) => {
   try {
     const { classroomId } = req.params;
     const userId = req.user.id;
+    const accountType = (req.user.accountType || "").toLowerCase();
 
-    const quizzes = await Quiz.find({ classroomId }).sort({ createdAt: -1 });
+    const classroom = await Classroom.findById(classroomId);
+    if (!classroom) {
+      return res.status(404).json({ success: false, message: "Classroom not found" });
+    }
+
+    const isEnrolled = classroom.studentsEnrolled.some(s => s.toString() === userId.toString());
+    const isClassroomInstructor = classroom.instructor.toString() === userId.toString();
+    const isAdmin = accountType === "admin";
+
+    if (!isEnrolled && !isClassroomInstructor && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Quizzes are only available for students enrolled in this classroom."
+      });
+    }
+
+    const quizzes = await Quiz.find({ classroomId })
+      .populate("submissions.student", "firstName lastName email image")
+      .sort({ createdAt: -1 });
 
     const result = quizzes.map(q => {
       const quizObj = q.toObject();
-      const userSubmission = quizObj.submissions?.find(sub => sub.student.toString() === userId.toString());
+      const userSubmission = quizObj.submissions?.find(
+        sub => (sub.student?._id || sub.student)?.toString() === userId.toString()
+      );
+      
+      const isQuizCreator = quizObj.instructor?.toString() === userId.toString();
+      const canViewAllSubmissions = isQuizCreator || isClassroomInstructor || isAdmin;
+
       return {
         ...quizObj,
         hasSubmitted: !!userSubmission,
-        mySubmission: userSubmission || null
+        mySubmission: userSubmission || null,
+        allSubmissions: canViewAllSubmissions ? quizObj.submissions || [] : undefined
       };
     });
 
@@ -172,21 +218,45 @@ exports.getQuizById = async (req, res) => {
   try {
     const { quizId } = req.params;
     const userId = req.user.id;
+    const accountType = (req.user.accountType || "").toLowerCase();
 
-    const quiz = await Quiz.findById(quizId);
+    const quiz = await Quiz.findById(quizId).populate("submissions.student", "firstName lastName email image");
     if (!quiz) {
       return res.status(404).json({ success: false, message: "Quiz not found" });
     }
 
+    let isClassroomInstructor = false;
+    const isQuizCreator = quiz.instructor?.toString() === userId.toString();
+    const isAdmin = accountType === "admin";
+
+    if (quiz.classroomId) {
+      const classroom = await Classroom.findById(quiz.classroomId);
+      if (classroom) {
+        isClassroomInstructor = classroom.instructor.toString() === userId.toString();
+        const isEnrolled = classroom.studentsEnrolled.some(s => s.toString() === userId.toString());
+        if (!isEnrolled && !isClassroomInstructor && !isAdmin && !isQuizCreator) {
+          return res.status(403).json({
+            success: false,
+            message: "Access denied. Quizzes are only for students enrolled in the classroom."
+          });
+        }
+      }
+    }
+
     const quizObj = quiz.toObject();
-    const userSubmission = quizObj.submissions?.find(sub => sub.student.toString() === userId.toString());
+    const userSubmission = quizObj.submissions?.find(
+      sub => (sub.student?._id || sub.student)?.toString() === userId.toString()
+    );
+
+    const canViewAllSubmissions = isQuizCreator || isClassroomInstructor || isAdmin;
 
     return res.status(200).json({
       success: true,
       data: {
         ...quizObj,
         hasSubmitted: !!userSubmission,
-        mySubmission: userSubmission || null
+        mySubmission: userSubmission || null,
+        allSubmissions: canViewAllSubmissions ? quizObj.submissions || [] : undefined
       }
     });
   } catch (error) {

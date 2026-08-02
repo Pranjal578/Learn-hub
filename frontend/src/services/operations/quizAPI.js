@@ -1,5 +1,5 @@
 import { toast } from "react-hot-toast";
-import { apiConnector } from "../apiconnector";
+import { apiConnector } from "../apiConnector";
 import { quizEndpoints } from "../apis";
 
 const { 
@@ -72,6 +72,9 @@ export const fetchClassroomQuizzes = async (classroomId, token) => {
     return response?.data?.data || [];
   } catch (error) {
     console.error("FETCH_CLASSROOM_QUIZZES_API ERROR:", error);
+    if (error?.response?.status === 403) {
+      toast.error(error?.response?.data?.message || "Quiz access is restricted to enrolled classroom students.");
+    }
     return [];
   }
 };
