@@ -1,21 +1,31 @@
 # Dependencies
 node_modules/
 .pnpm-store/
+package-lock.json.log
 
-# Production & Build outputs
+# Production & Build Outputs
 dist/
 dist-ssr/
 build/
 *.tsbuildinfo
+*.apk
+*.ipa
 
-# Environment variables & Local secrets
+# Environment Variables & Local Secrets
 .env
-.env.*.local
-.env.local
-.env.development
-.env.production
+.env.*
+!.env.example
+*.local
 
-# System & Editor files
+# Database & Local Data
+backend/data/
+backend/data/*
+mongodb-data/
+*.sqlite
+*.db
+*.lock
+
+# IDEs & System Files
 .DS_Store
 Thumbs.db
 .vscode/*
@@ -26,6 +36,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+.gemini/
 
 # Logs & Debugging
 logs/
@@ -36,11 +47,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Local Data & Archives
-backend/data/
-mongodb-data/
-*.zip
-
-# Cache directories
+# Caching
 .vite/
 .eslintcache
+.cache/
+
+# Archives & Temporary Files
+tmp/
+temp/
+screenshots/
+*.zip
+*.tar
+*.tar.gz
+*.tgz

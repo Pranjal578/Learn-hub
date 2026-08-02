@@ -1,13 +1,27 @@
-# Environment secrets — NEVER commit real credentials
-.env
-
 # Dependencies
 node_modules/
 
-# Logs
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+
+# Local Database Files & Locks
+data/
+data/*
+mongodb-data/
+*.sqlite
+*.db
+*.lock
+
+# Logs & Temporary Files
 *.log
 npm-debug.log*
+logs/
+tmp/
+temp/
+screenshots/
 
-# OS
+# System Files
 .DS_Store
 Thumbs.db
