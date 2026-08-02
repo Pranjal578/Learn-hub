@@ -71,18 +71,14 @@ docker compose up --build
 ```
 > Access the web application at **`http://localhost`** and API at **`http://localhost:5000`**.
 
-### Publishing Pre-built Images to Docker Hub
+### Published Docker Hub Images
 ```bash
-# Log in to Docker Hub
-docker login
+# Pull published production images directly from Docker Hub
+docker pull pranjal9362/learnhub-backend:latest
+docker pull pranjal9362/learnhub-frontend:latest
 
-# Tag images
-docker tag learnhub-backend:latest <YOUR_DOCKERHUB_USERNAME>/learnhub-backend:latest
-docker tag learnhub-frontend:latest <YOUR_DOCKERHUB_USERNAME>/learnhub-frontend:latest
-
-# Push images
-docker push <YOUR_DOCKERHUB_USERNAME>/learnhub-backend:latest
-docker push <YOUR_DOCKERHUB_USERNAME>/learnhub-frontend:latest
+# Or launch entire stack using docker-compose
+docker compose up
 ```
 
 ---

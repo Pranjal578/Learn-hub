@@ -1,5 +1,6 @@
 services:
   backend:
+    image: pranjal9362/learnhub-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -28,6 +29,7 @@ services:
       - learnhub-net
 
   frontend:
+    image: pranjal9362/learnhub-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
